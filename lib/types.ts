@@ -72,4 +72,5 @@ export interface AppState {
   settings: AppSettings;
   achievements: Achievement[];
   remindersSentTotal: number;
+  onboardingComplete: boolean;
 }

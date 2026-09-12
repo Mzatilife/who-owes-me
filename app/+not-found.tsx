@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   text: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 20,
     fontWeight: 600,
   },

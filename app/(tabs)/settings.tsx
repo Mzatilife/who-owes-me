@@ -5,10 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Share,
   Alert,
+  Image,
+  Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp, useColors } from '@/lib/AppContext';
 import { ThemeMode, CurrencyCode } from '@/lib/types';
 import { CURRENCIES } from '@/lib/utils';
@@ -23,7 +25,7 @@ export default function SettingsScreen() {
   const handleExport = async () => {
     const csv = debtsToCSV(state.debts);
     try {
-      await Share.share({ message: csv, title: 'Who Owes Me - Export' });
+      await Share.share({ message: csv, title: 'Who Owes Me? - Export' });
     } catch (e) {
       Alert.alert('Export failed', 'Could not share the CSV data.');
     }
@@ -32,7 +34,7 @@ export default function SettingsScreen() {
   const handleReset = () => {
     Alert.alert(
       'Reset All Data?',
-      'This will wipe everything and restore sample data. This cannot be undone.',
+          'This will remove all debts and return the app to its first-use setup. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -60,9 +62,15 @@ export default function SettingsScreen() {
         <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
 
         {/* Profile */}
-        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Your Name</Text>
-          <Text style={[styles.sectionValue, { color: colors.text }]}>{state.settings.userName}</Text>
+        <View style={[styles.profileCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}>
+          <View style={[styles.profileIconWrap, { backgroundColor: colors.card }]}>
+            <Image source={require('@/assets/images/wom-icon.png')} style={styles.profileIcon} />
+          </View>
+          <View style={styles.profileDetails}>
+            <Text style={[styles.profileLabel, { color: colors.primaryDark }]}>YOUR LEDGER</Text>
+            <Text style={[styles.profileName, { color: colors.text }]}>{state.settings.userName}</Text>
+            <Text style={[styles.profileHint, { color: colors.textSecondary }]}>Keeping the receipts in one place.</Text>
+          </View>
         </View>
 
         {/* Theme */}
@@ -234,7 +242,7 @@ export default function SettingsScreen() {
         >
           <View style={styles.rowLeft}>
             <RefreshCw size={20} color={colors.danger} strokeWidth={2.5} />
-            <Text style={[styles.rowLabel, { color: colors.text }]}>Reset to Sample Data</Text>
+            <Text style={[styles.rowLabel, { color: colors.text }]}>Reset All Data</Text>
           </View>
           <Text style={[styles.rowValue, { color: colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -261,6 +269,7 @@ export default function SettingsScreen() {
 
         {showAbout && (
           <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Image source={require('@/assets/images/wom-icon.png')} style={styles.aboutIcon} />
             <Text style={[styles.aboutTitle, { color: colors.text }]}>Who Owes Me? v1.0.0</Text>
             <Text style={[styles.aboutText, { color: colors.textSecondary }]}>
               A serious debt tracker that accidentally became hilarious. Track what people owe you, generate funny reminders, and keep tabs on who's paying and who's dodging.
@@ -268,6 +277,10 @@ export default function SettingsScreen() {
             <Text style={[styles.aboutFooter, { color: colors.textTertiary }]}>
               Your data never leaves your device.
             </Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://mahala.graduatemw.com')} activeOpacity={0.7}>
+              <Text style={[styles.creator, { color: colors.primary }]}>Created by Mahala Mzati Mkwepu</Text>
+              <Text style={[styles.creatorTagline, { color: colors.textSecondary }]}>Because “I’ll pay you tomorrow” needed a database.</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -286,6 +299,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   title: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 28,
     fontWeight: '900',
     marginBottom: 20,
@@ -296,7 +310,50 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 8,
   },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  profileIconWrap: {
+    width: 58,
+    height: 58,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  profileIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+  },
+  profileDetails: {
+    flex: 1,
+    minWidth: 0,
+  },
+  profileLabel: {
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 11,
+    letterSpacing: 1.1,
+  },
+  profileName: {
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 21,
+    lineHeight: 27,
+    marginTop: 2,
+  },
+  profileHint: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
+  },
   sectionLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -304,10 +361,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   sectionValue: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 18,
     fontWeight: '700',
   },
   groupTitle: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -327,13 +386,18 @@ const styles = StyleSheet.create({
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 12,
     gap: 12,
   },
   rowLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '600',
   },
   rowValue: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -350,6 +414,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   themeBtnText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -368,10 +433,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   menuOptionText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '500',
   },
   checkText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 18,
     fontWeight: '700',
     color: '#34D399',
@@ -389,6 +456,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   freqChipText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -403,6 +471,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   infoText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
@@ -414,23 +483,47 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   aboutTitle: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 18,
     fontWeight: '800',
     marginBottom: 8,
   },
   aboutText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 12,
   },
   aboutFooter: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontStyle: 'italic',
   },
+  aboutIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    marginBottom: 14,
+  },
+  creator: {
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 14,
+    marginTop: 20,
+    textDecorationLine: 'underline',
+  },
+  creatorTagline: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 19,
+    marginTop: 3,
+  },
   securityInfo: {
     flex: 1,
+    minWidth: 0,
   },
   securityDesc: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 12,
     marginTop: 2,
   },
@@ -440,6 +533,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 2,
     justifyContent: 'center',
+    flexShrink: 0,
   },
   toggleKnob: {
     width: 24,

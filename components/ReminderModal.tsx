@@ -79,15 +79,16 @@ export function ReminderModal({ visible, debt, colors, onClose, onSent }: Remind
           onPress={(e) => e.stopPropagation()}
         >
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>Generate Reminder</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <View>
+              <Text style={[styles.eyebrow, { color: colors.primary }]}>MESSAGE STUDIO</Text>
+              <Text style={[styles.title, { color: colors.text }]}>Generate reminder</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: colors.bgTertiary }]}>
               <X size={22} color={colors.textSecondary} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Choose your level of aggression
-          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>For {debt.personName} · choose your preferred tone.</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.toneScroll}>
             {TONES.map((tone) => (
@@ -115,6 +116,10 @@ export function ReminderModal({ visible, debt, colors, onClose, onSent }: Remind
             ))}
           </ScrollView>
 
+          <View style={styles.previewHeader}>
+            <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>MESSAGE PREVIEW</Text>
+            <Text style={[styles.previewTone, { color: colors.primary }]}>{selectedTone}</Text>
+          </View>
           <View style={[styles.messageBox, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
             <ScrollView showsVerticalScrollIndicator={false} style={styles.messageScroll}>
               <Text style={[styles.messageText, { color: colors.text }]}>{message}</Text>
@@ -156,8 +161,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40,
     maxHeight: '85%',
@@ -169,13 +174,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 22,
-    fontWeight: '800',
   },
+  eyebrow: { fontFamily: 'Outfit_700Bold', fontSize: 10, letterSpacing: 0.9, marginBottom: 2 },
   closeBtn: {
-    padding: 4,
+    width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
   },
   subtitle: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     marginBottom: 16,
   },
@@ -187,15 +194,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 12,
     marginRight: 8,
-    borderWidth: 1.5,
+    borderWidth: 1,
     gap: 5,
   },
   toneEmoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
   },
   toneLabel: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -203,7 +212,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    minHeight: 120,
+    minHeight: 136,
     maxHeight: 200,
     marginBottom: 16,
   },
@@ -211,9 +220,13 @@ const styles = StyleSheet.create({
     maxHeight: 180,
   },
   messageText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     lineHeight: 22,
   },
+  previewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
+  previewLabel: { fontFamily: 'Outfit_700Bold', fontSize: 11, letterSpacing: 0.65 },
+  previewTone: { fontFamily: 'Outfit_700Bold', fontSize: 12, textTransform: 'capitalize' },
   actions: {
     flexDirection: 'row',
     gap: 10,
@@ -223,12 +236,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 13,
     flex: 1,
     gap: 8,
     borderWidth: 1,
   },
   actionBtnText: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 14,
     fontWeight: '700',
   },

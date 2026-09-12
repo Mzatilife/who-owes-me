@@ -71,7 +71,7 @@ export function useBiometricAuth(): BiometricAuthState {
     }
 
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Unlock Who Owes Me',
+      promptMessage: 'Unlock Who Owes Me?',
       fallbackLabel: 'Use Passcode',
       cancelLabel: 'Cancel',
       disableDeviceFallback: false,

@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   text: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

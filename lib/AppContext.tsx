@@ -22,6 +22,7 @@ interface AppContextValue {
   recordReminder: (id: string) => void;
   writeOffDebt: (id: string) => void;
   updateSettings: (updates: Partial<AppSettings>) => void;
+  completeOnboarding: (userName: string) => void;
   toggleTheme: () => void;
   getDebtsByPerson: (name: string) => Debt[];
   sortDebts: (debts: Debt[], sort: SortOption) => Debt[];
@@ -142,6 +143,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [updateState]);
 
+  const completeOnboarding: AppContextValue['completeOnboarding'] = useCallback((userName) => {
+    updateState((prev) => ({
+      ...prev,
+      onboardingComplete: true,
+      settings: { ...prev.settings, userName: userName.trim() },
+    }));
+  }, [updateState]);
+
   const toggleTheme: AppContextValue['toggleTheme'] = useCallback(() => {
     updateState((prev) => ({
       ...prev,
@@ -243,6 +252,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     recordReminder,
     writeOffDebt,
     updateSettings,
+    completeOnboarding,
     toggleTheme,
     getDebtsByPerson,
     sortDebts,

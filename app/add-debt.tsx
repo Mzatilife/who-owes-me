@@ -6,16 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  SafeAreaView,
   Platform,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
 import { DebtCategory, CurrencyCode } from '@/lib/types';
 import { CURRENCIES } from '@/lib/utils';
 import { getRandomConfirmation } from '@/lib/humor';
 import { Toast } from '@/components/Toast';
-import { X, Check, Calendar, Phone, StickyNote } from 'lucide-react-native';
+import { X, Check, Calendar, Phone, StickyNote, UserRound, ReceiptText } from 'lucide-react-native';
 
 const CATEGORIES: { id: DebtCategory; label: string; emoji: string }[] = [
   { id: 'money', label: 'Money', emoji: '💵' },
@@ -38,6 +39,7 @@ export default function AddDebtScreen() {
   const [contactPhone, setContactPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [showCurrencies, setShowCurrencies] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
 
   const isMoney = category === 'money';
@@ -66,14 +68,22 @@ export default function AddDebtScreen() {
     }, 1800);
   };
 
+  const handleDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS !== 'ios') setShowDatePicker(false);
+    if (selectedDate) setDueDate(selectedDate.toISOString());
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.bgTertiary }]}>
           <X size={24} color={colors.text} strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Add Debt</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerCopy}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Add a debt</Text>
+          <Text style={[styles.headerSub, { color: colors.textSecondary }]}>Write it down. They cannot deny it later.</Text>
+        </View>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -81,18 +91,21 @@ export default function AddDebtScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Person name */}
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Who owes you?</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
-          placeholder="e.g. John Banda"
-          placeholderTextColor={colors.textTertiary}
-          value={personName}
-          onChangeText={setPersonName}
-        />
+        <View style={styles.formHeading}>
+          <View style={[styles.formHeadingIcon, { backgroundColor: colors.primaryLight }]}><UserRound size={18} color={colors.primary} strokeWidth={2.5} /></View>
+          <View><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Debt details</Text><Text style={[styles.groupHint, { color: colors.textTertiary }]}>Who and what is being tracked?</Text></View>
+        </View>
+        <View style={[styles.formSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Who owes you?</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }]}
+            placeholder="e.g. John Banda"
+            placeholderTextColor={colors.textTertiary}
+            value={personName}
+            onChangeText={setPersonName}
+          />
 
-        {/* Category */}
-        <Text style={[styles.label, { color: colors.textSecondary }]}>What type of debt?</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>What type of debt?</Text>
         <View style={styles.categoryRow}>
           {CATEGORIES.map((cat) => (
             <TouchableOpacity
@@ -119,22 +132,24 @@ export default function AddDebtScreen() {
           ))}
         </View>
 
-        {/* Description */}
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          What do they owe you?
-        </Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
-          placeholder={isMoney ? 'e.g. Cash loan' : 'e.g. One lunch'}
-          placeholderTextColor={colors.textTertiary}
-          value={description}
-          onChangeText={setDescription}
-        />
+          <Text style={[styles.label, { color: colors.textSecondary }]}>What do they owe you?</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }]}
+            placeholder={isMoney ? 'e.g. Cash loan' : 'e.g. One lunch'}
+            placeholderTextColor={colors.textTertiary}
+            value={description}
+            onChangeText={setDescription}
+          />
+        </View>
 
         {/* Amount (only for money) */}
         {isMoney && (
           <>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Amount</Text>
+            <View style={styles.formHeading}>
+              <View style={[styles.formHeadingIcon, { backgroundColor: colors.accent + '16' }]}><ReceiptText size={18} color={colors.accent} strokeWidth={2.5} /></View>
+              <View><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Amount</Text><Text style={[styles.groupHint, { color: colors.textTertiary }]}>The amount still owed to you.</Text></View>
+            </View>
+            <View style={[styles.formSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.amountRow}>
               <TouchableOpacity
                 onPress={() => setShowCurrencies(!showCurrencies)}
@@ -177,23 +192,35 @@ export default function AddDebtScreen() {
                 ))}
               </View>
             )}
+            </View>
           </>
         )}
 
-        {/* Optional fields */}
-        <Text style={[styles.optionalLabel, { color: colors.textTertiary }]}>Optional</Text>
+        <View style={styles.formHeading}>
+          <View style={[styles.formHeadingIcon, { backgroundColor: colors.bgTertiary }]}><StickyNote size={18} color={colors.textSecondary} strokeWidth={2.5} /></View>
+          <View><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Additional details</Text><Text style={[styles.groupHint, { color: colors.textTertiary }]}>Add context if you need it later.</Text></View>
+        </View>
+        <View style={[styles.formSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
 
         {/* Due date */}
-        <View style={[styles.optionalRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          activeOpacity={0.75}
+          style={[styles.optionalRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
           <Calendar size={18} color={colors.textSecondary} strokeWidth={2.5} />
-          <TextInput
-            style={[styles.optionalInput, { color: colors.text }]}
-            placeholder="Due date (YYYY-MM-DD)"
-            placeholderTextColor={colors.textTertiary}
-            value={dueDate}
-            onChangeText={setDueDate}
+          <Text style={[styles.optionalInput, { color: dueDate ? colors.text : colors.textTertiary }]}>
+            {dueDate ? new Date(dueDate).toLocaleDateString() : 'Choose a due date'}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={dueDate ? new Date(dueDate) : new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDateChange}
           />
-        </View>
+        )}
 
         {/* Phone */}
         <View style={[styles.optionalRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -221,6 +248,7 @@ export default function AddDebtScreen() {
             textAlignVertical="top"
           />
         </View>
+        </View>
 
         {/* Save button */}
         <TouchableOpacity
@@ -232,9 +260,7 @@ export default function AddDebtScreen() {
           ]}
         >
           <Check size={22} color="#FFF" strokeWidth={3} />
-          <Text style={[styles.saveBtnText, { color: canSave ? '#FFF' : colors.textTertiary }]}>
-            Record This Debt
-          </Text>
+          <View><Text style={[styles.saveBtnText, { color: canSave ? '#FFF' : colors.textTertiary }]}>Record this debt</Text><Text style={[styles.saveBtnSubtext, { color: canSave ? '#D1FAE5' : colors.textTertiary }]}>Add it to your ledger</Text></View>
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
@@ -263,17 +289,34 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   backBtn: {
-    padding: 4,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  headerCopy: { flex: 1, marginLeft: 12 },
+  headerSpacer: { width: 38 },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 20,
+  },
+  headerSub: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 12,
+    marginTop: 1,
   },
   scrollContent: {
     padding: 20,
     paddingTop: 16,
   },
+  formHeading: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 8 },
+  formHeadingIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  groupTitle: { fontFamily: 'Outfit_700Bold', fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 },
+  groupHint: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
+  formSection: { borderRadius: 16, padding: 16, borderWidth: 1 },
   label: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
@@ -282,6 +325,7 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 14,
     padding: 14,
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '500',
     borderWidth: 1,
@@ -301,9 +345,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   categoryEmoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
   },
   categoryLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -321,10 +367,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   currencySymbol: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 18,
     fontWeight: '800',
   },
   currencyCode: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -332,6 +380,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     padding: 14,
+    fontFamily: 'Outfit_400Regular',
     fontSize: 22,
     fontWeight: '800',
     borderWidth: 1,
@@ -351,15 +400,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   currencyOptionText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '500',
   },
   checkText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 18,
     fontWeight: '700',
     color: '#34D399',
   },
   optionalLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -371,9 +423,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
     borderWidth: 1,
     marginBottom: 10,
   },
@@ -383,6 +435,7 @@ const styles = StyleSheet.create({
   },
   optionalInput: {
     flex: 1,
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '500',
     minHeight: 24,
@@ -390,14 +443,15 @@ const styles = StyleSheet.create({
   saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 16,
-    gap: 8,
+    gap: 10,
     marginTop: 24,
   },
   saveBtnText: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 16,
   },
+  saveBtnSubtext: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
 });

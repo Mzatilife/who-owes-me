@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
 import { Avatar } from '@/components/Avatar';
@@ -41,7 +41,7 @@ export default function DebtDetailScreen() {
         <View style={styles.notFound}>
           <Text style={[styles.notFoundText, { color: colors.text }]}>Debt not found.</Text>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={{ color: colors.primary, fontWeight: '700' }}>Go back</Text>
+            <Text style={{ color: colors.primary, fontFamily: 'Outfit_700Bold' }}>Go back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -116,19 +116,19 @@ export default function DebtDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.bgTertiary }]}>
           <X size={24} color={colors.text} strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Debt Details</Text>
-        <TouchableOpacity onPress={handleDelete} style={styles.backBtn}>
+        <View style={styles.headerCopy}><Text style={[styles.headerTitle, { color: colors.text }]}>Debt details</Text><Text style={[styles.headerSub, { color: colors.textSecondary }]}>Keep the record straight.</Text></View>
+        <TouchableOpacity onPress={handleDelete} style={[styles.backBtn, { backgroundColor: colors.danger + '12' }]}>
           <Trash2 size={22} color={colors.danger} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Person card */}
-        <View style={[styles.personCard, { backgroundColor: colors.card, borderColor: statusColor + '40' }]}>
+        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Debt record</Text>
+        <View style={[styles.personCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.personHeader}>
             <Avatar name={debt.personName} size={64} colors={colors} />
             <View style={styles.personInfo}>
@@ -147,7 +147,7 @@ export default function DebtDetailScreen() {
           </View>
 
           {/* Amount */}
-          <View style={styles.amountSection}>
+          <View style={[styles.amountSection, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
             <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>
               {isMoney ? 'Outstanding' : 'What they owe'}
             </Text>
@@ -183,7 +183,7 @@ export default function DebtDetailScreen() {
           )}
         </View>
 
-        {/* Debt info grid */}
+        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Details</Text>
         <View style={styles.infoGrid}>
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Calendar size={18} color={colors.textSecondary} strokeWidth={2.5} />
@@ -221,7 +221,9 @@ export default function DebtDetailScreen() {
 
         {/* Debt Health */}
         {!isInactive && (
-          <View style={[styles.healthCard, { backgroundColor: colors.card, borderColor: healthInfo.color + '40' }]}>
+          <>
+          <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Debt health</Text>
+          <View style={[styles.healthCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.healthHeader}>
               <Text style={[styles.healthTitle, { color: colors.text }]}>Debt Health</Text>
               <View style={[styles.healthBadge, { backgroundColor: healthInfo.color + '20' }]}>
@@ -230,10 +232,13 @@ export default function DebtDetailScreen() {
             </View>
             <Text style={[styles.healthMessage, { color: colors.textSecondary }]}>{healthInfo.message}</Text>
           </View>
+          </>
         )}
 
         {/* Payment history */}
         {isMoney && debt.payments.length > 0 && (
+          <>
+          <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Payments</Text>
           <View style={[styles.historyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.historyTitle, { color: colors.text }]}>Payment History</Text>
             {debt.payments.map((p) => (
@@ -248,9 +253,11 @@ export default function DebtDetailScreen() {
               </View>
             ))}
           </View>
+          </>
         )}
 
         {/* Person's debt history */}
+        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>History & reputation</Text>
         <View style={[styles.historyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.historyTitle, { color: colors.text }]}>
             {debt.personName}'s Debt History
@@ -288,7 +295,7 @@ export default function DebtDetailScreen() {
 
         {/* Action buttons */}
         {!isInactive && (
-          <View style={styles.actions}>
+          <><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Actions</Text><View style={styles.actions}>
             <TouchableOpacity
               onPress={() => setReminderVisible(true)}
               style={[styles.actionBtn, { backgroundColor: colors.primary }]}
@@ -312,6 +319,7 @@ export default function DebtDetailScreen() {
               <Text style={[styles.actionBtnText, { color: colors.danger }]}>Write Off as Charity 💀</Text>
             </TouchableOpacity>
           </View>
+          </>
         )}
 
         {isPaid && (
@@ -366,19 +374,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderBottomWidth: 1,
   },
   backBtn: {
-    padding: 4,
+    width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
   },
+  headerCopy: { flex: 1, marginLeft: 12 },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 20,
   },
+  headerSub: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
   scrollContent: {
     padding: 20,
     paddingTop: 16,
   },
+  groupTitle: { fontFamily: 'Outfit_700Bold', fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20, marginBottom: 8 },
   notFound: {
     flex: 1,
     alignItems: 'center',
@@ -386,14 +396,14 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   notFoundText: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 18,
-    fontWeight: '700',
   },
   personCard: {
-    borderRadius: 22,
+    borderRadius: 20,
     padding: 20,
-    borderWidth: 1.5,
-    marginBottom: 16,
+    borderWidth: 1,
+    marginBottom: 0,
   },
   personHeader: {
     flexDirection: 'row',
@@ -405,13 +415,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   personName: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 22,
-    fontWeight: '800',
     marginBottom: 2,
   },
   personCategory: {
-    fontSize: 14,
-    textTransform: 'capitalize',
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   statusCircle: {
     width: 44,
@@ -421,29 +433,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   statusCircleEmoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 20,
   },
   bigEmoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 28,
   },
   amountSection: {
     marginBottom: 14,
+    padding: 15,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   amountLabel: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 12,
-    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 6,
   },
   amountValue: {
-    fontSize: 32,
-    fontWeight: '900',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 28,
   },
   amountSub: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 14,
     marginTop: 4,
-    fontWeight: '500',
   },
   statusBox: {
     borderRadius: 14,
@@ -451,9 +468,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   statusText: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 15,
     fontStyle: 'italic',
-    fontWeight: '600',
   },
   infoGrid: {
     gap: 10,
@@ -463,7 +480,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderWidth: 1,
@@ -472,24 +489,24 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   infoLabel: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 13,
-    fontWeight: '600',
   },
   infoValue: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 15,
-    fontWeight: '700',
     marginLeft: 'auto',
   },
   infoSub: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 12,
     marginLeft: 'auto',
-    fontWeight: '500',
   },
   healthCard: {
     borderRadius: 16,
     padding: 18,
-    borderWidth: 1.5,
-    marginBottom: 16,
+    borderWidth: 1,
+    marginBottom: 0,
   },
   healthHeader: {
     flexDirection: 'row',
@@ -498,8 +515,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   healthTitle: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 16,
-    fontWeight: '800',
   },
   healthBadge: {
     paddingHorizontal: 12,
@@ -507,10 +524,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   healthBadgeText: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 13,
-    fontWeight: '800',
   },
   healthMessage: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontStyle: 'italic',
     lineHeight: 20,
@@ -519,11 +537,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   historyTitle: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 16,
-    fontWeight: '800',
     marginBottom: 14,
   },
   paymentItem: {
@@ -538,13 +556,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   paymentAmount: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 15,
-    fontWeight: '700',
     flex: 1,
   },
   paymentDate: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 13,
-    fontWeight: '500',
   },
   historyItem: {
     flexDirection: 'row',
@@ -553,8 +571,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   historyDesc: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 15,
-    fontWeight: '600',
   },
   historyBadge: {
     paddingHorizontal: 10,
@@ -562,8 +580,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   historyBadgeText: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 12,
-    fontWeight: '700',
   },
   reputationBox: {
     borderTopWidth: 1,
@@ -571,34 +589,36 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   reputationTitle: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 14,
-    fontWeight: '700',
     marginBottom: 8,
   },
   reputationStars: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 22,
     marginBottom: 6,
   },
   reputationReview: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontStyle: 'italic',
     lineHeight: 20,
   },
   actions: {
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 0,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
-    borderRadius: 14,
+    borderRadius: 16,
     gap: 8,
   },
   actionBtnText: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 15,
-    fontWeight: '800',
     color: '#FFF',
   },
   celebrationBox: {
@@ -609,15 +629,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   celebrationEmoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 48,
     marginBottom: 12,
   },
   celebrationText: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 18,
-    fontWeight: '800',
     marginBottom: 6,
   },
   celebrationSub: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     textAlign: 'center',
   },

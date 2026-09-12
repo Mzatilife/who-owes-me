@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
-import { Fingerprint, ScanFace, Lock, AlertCircle } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Image } from 'react-native';
+import { Lock } from 'lucide-react-native';
 import { ThemeColors } from '@/lib/theme';
 import { BiometricType } from '@/hooks/useBiometricAuth';
 
@@ -50,16 +50,6 @@ export function LockScreen({ colors, onAuthenticate, biometricSupported, biometr
     }
   };
 
-  const renderIcon = () => {
-    if (!biometricSupported) {
-      return <AlertCircle size={56} color={colors.warning} strokeWidth={2} />;
-    }
-    if (biometricType === 'facial') {
-      return <ScanFace size={56} color={colors.primary} strokeWidth={1.5} />;
-    }
-    return <Fingerprint size={56} color={colors.primary} strokeWidth={1.5} />;
-  };
-
   const promptText = !biometricSupported
     ? 'Biometric authentication isn\'t available on this device.'
     : biometricType === 'facial'
@@ -78,10 +68,10 @@ export function LockScreen({ colors, onAuthenticate, biometricSupported, biometr
         ]}
       >
         <View style={[styles.iconContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {renderIcon()}
+          <Image source={require('@/assets/images/wom-icon.png')} style={styles.brandIcon} />
         </View>
 
-        <Text style={[styles.title, { color: colors.text }]}>Who Owes Me</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Who Owes Me?</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           {promptText}
         </Text>
@@ -136,14 +126,21 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   title: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 8,
   },
   subtitle: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     textAlign: 'center',
     marginBottom: 24,
+  },
+  brandIcon: {
+    width: 76,
+    height: 76,
+    borderRadius: 22,
   },
   errorBox: {
     borderRadius: 14,
@@ -154,6 +151,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
@@ -169,10 +167,12 @@ const styles = StyleSheet.create({
   },
   unlockBtnText: {
     color: '#FFF',
+    fontFamily: 'Outfit_400Regular',
     fontSize: 17,
     fontWeight: '700',
   },
   hint: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     textAlign: 'center',
     marginTop: 8,

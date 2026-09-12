@@ -6,8 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  SafeAreaView,
+  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
 import { Debt } from '@/lib/types';
@@ -78,66 +80,67 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         contentContainerStyle={styles.scrollContent}
       >
+        <View style={styles.brandRow}>
+          <View style={[styles.brandMark, { backgroundColor: colors.primaryLight }]}>
+            <Image source={require('@/assets/images/wom-icon.png')} style={styles.brandImage} />
+          </View>
+          <View>
+            <Text style={[styles.brandName, { color: colors.text }]}>Who Owes Me?</Text>
+            <Text style={[styles.brandTagline, { color: colors.textSecondary }]}>Your friendly debt ledger</Text>
+          </View>
+        </View>
+
         {/* Greeting */}
         <View style={styles.greetingSection}>
           <Text style={[styles.greeting, { color: colors.text }]}>{greeting}</Text>
           <Text style={[styles.greetingSub, { color: colors.textSecondary }]}>{subtitle}</Text>
         </View>
 
-        {/* Total Owed Hero */}
-        <View style={[styles.heroCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>YOU ARE OWED</Text>
-          <Text style={[styles.heroAmount, { color: colors.text }]}>
-            {formatMoney(totalOwed, state.settings.defaultCurrency)}
-          </Text>
-          <View style={styles.heroStats}>
-            <View style={styles.heroStatItem}>
-              <Text style={[styles.heroStatValue, { color: colors.text }]}>{peopleCount}</Text>
-              <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>
-                {peopleCount === 1 ? 'person' : 'people'}
-              </Text>
+        <View style={styles.ledgerSection}>
+          <View style={styles.ledgerHeading}>
+            <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Your Ledger</Text>
+            <Text style={[styles.ledgerDate, { color: colors.textTertiary }]}>LIVE OVERVIEW</Text>
+          </View>
+          <LinearGradient colors={[colors.primaryDark, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+            <View style={styles.heroOrb} />
+            <Text style={styles.heroLabel}>TOTAL OWED TO YOU</Text>
+            <Text style={styles.heroAmount}>{formatMoney(totalOwed, state.settings.defaultCurrency)}</Text>
+            <Text style={styles.heroCaption}>Across {peopleCount} {peopleCount === 1 ? 'person' : 'people'} in your ledger</Text>
+            <View style={styles.heroStats}>
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{activeDebts.length}</Text>
+                <Text style={styles.heroStatLabel}>open debts</Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{overdueDebts.length}</Text>
+                <Text style={styles.heroStatLabel}>need attention</Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{thingsOwed}</Text>
+                <Text style={styles.heroStatLabel}>items owed</Text>
+              </View>
             </View>
-            <View style={[styles.heroDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.heroStatItem}>
-              <Text style={[styles.heroStatValue, { color: overdueDebts.length > 0 ? colors.danger : colors.text }]}>
-                {overdueDebts.length}
-              </Text>
-              <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>overdue</Text>
+          </LinearGradient>
+
+          <View style={styles.quickStatsRow}>
+            <View style={[styles.quickStat, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.quickIcon, { backgroundColor: colors.danger + '14' }]}><TrendingUp size={17} color={colors.danger} strokeWidth={2.5} /></View>
+              <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>OVERDUE VALUE</Text>
+              <Text style={[styles.quickStatValue, { color: colors.text }]}>{formatMoney(overdueAmount, state.settings.defaultCurrency)}</Text>
             </View>
-            <View style={[styles.heroDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.heroStatItem}>
-              <Text style={[styles.heroStatValue, { color: colors.text }]}>{thingsOwed}</Text>
-              <Text style={[styles.heroStatLabel, { color: colors.textSecondary }]}>things</Text>
+            <View style={[styles.quickStat, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.quickIcon, { backgroundColor: colors.accent + '16' }]}><Package size={17} color={colors.accent} strokeWidth={2.5} /></View>
+              <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>NON-CASH ITEMS</Text>
+              <Text style={[styles.quickStatValue, { color: colors.text }]}>{thingsOwed}</Text>
             </View>
           </View>
         </View>
 
-        {/* Quick stats row */}
-        {activeDebts.length > 0 && (
-          <View style={styles.quickStatsRow}>
-            <View style={[styles.quickStat, { backgroundColor: colors.card }]}>
-              <TrendingUp size={18} color={colors.success} strokeWidth={2.5} />
-              <Text style={[styles.quickStatValue, { color: colors.text }]}>
-                {formatMoney(overdueAmount, state.settings.defaultCurrency)}
-              </Text>
-              <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>overdue</Text>
-            </View>
-            <View style={[styles.quickStat, { backgroundColor: colors.card }]}>
-              <Package size={18} color={colors.accent} strokeWidth={2.5} />
-              <Text style={[styles.quickStatValue, { color: colors.text }]}>{thingsOwed}</Text>
-              <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>items owed</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Add Debt Button */}
-        <TouchableOpacity
-          onPress={() => router.push('/add-debt')}
-          activeOpacity={0.85}
-          style={[styles.addBtn, { backgroundColor: colors.primary }]}
-        >
-          <Plus size={22} color="#FFF" strokeWidth={3} />
-          <Text style={styles.addBtnText}>Add Debt</Text>
+        <TouchableOpacity onPress={() => router.push('/add-debt')} activeOpacity={0.88} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
+          <View style={styles.addBtnIcon}><Plus size={20} color="#FFF" strokeWidth={3} /></View>
+          <View><Text style={styles.addBtnText}>Add a debt</Text><Text style={styles.addBtnSubtext}>Keep the record straight</Text></View>
         </TouchableOpacity>
 
         {/* Debts list or empty state */}
@@ -146,14 +149,11 @@ export default function HomeScreen() {
         ) : (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {activeDebts.length > 5 ? 'Most Urgent Cases' : 'Active Debts'}
-              </Text>
-              {activeDebts.length > 5 && (
-                <Text style={[styles.sectionSub, { color: colors.textTertiary }]}>
-                  {getManyDebtsMessage()}
-                </Text>
-              )}
+              <View>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Most urgent cases</Text>
+                <Text style={[styles.sectionSub, { color: colors.textTertiary }]}>{activeDebts.length > 5 ? getManyDebtsMessage() : 'Sorted by who needs a reminder first.'}</Text>
+              </View>
+              {sortedUrgent.length > 5 && <TouchableOpacity onPress={() => router.push('/people')}><Text style={[styles.sectionLink, { color: colors.primary }]}>See all</Text></TouchableOpacity>}
             </View>
 
             {sortedUrgent.slice(0, 5).map((debt, i) => (
@@ -167,16 +167,6 @@ export default function HomeScreen() {
               />
             ))}
 
-            {sortedUrgent.length > 5 && (
-              <TouchableOpacity
-                onPress={() => router.push('/people')}
-                style={[styles.seeAllBtn, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.seeAllText, { color: colors.primary }]}>
-                  See all {activeDebts.length} debts
-                </Text>
-              </TouchableOpacity>
-            )}
           </>
         )}
       </ScrollView>
@@ -204,58 +194,107 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 12,
+    paddingTop: 16,
   },
-  greetingSection: {
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginBottom: 20,
   },
+  brandMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandImage: { width: 38, height: 38, borderRadius: 12 },
+  brandName: { fontFamily: 'Outfit_700Bold', fontSize: 15 },
+  brandTagline: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
+  greetingSection: {
+    marginBottom: 18,
+  },
   greeting: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 27,
+    lineHeight: 34,
     marginBottom: 4,
   },
   greetingSub: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
+    lineHeight: 21,
   },
+  groupTitle: {
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  ledgerSection: {
+    marginBottom: 20,
+  },
+  ledgerHeading: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ledgerDate: { fontFamily: 'Outfit_700Bold', fontSize: 10, letterSpacing: 0.8 },
   heroCard: {
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 16,
-    shadowColor: '#000',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: '#047857',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.22,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 7,
+    overflow: 'hidden',
+  },
+  heroOrb: {
+    position: 'absolute', width: 180, height: 180, borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.08)', right: -52, top: -92,
   },
   heroLabel: {
-    fontSize: 12,
-    fontWeight: '700',
+    color: '#D1FAE5',
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 11,
     letterSpacing: 1.5,
     marginBottom: 8,
   },
   heroAmount: {
-    fontSize: 44,
-    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 38,
     marginBottom: 20,
   },
+  heroCaption: { color: '#D1FAE5', fontFamily: 'Outfit_600SemiBold', fontSize: 13, marginTop: -13, marginBottom: 18 },
   heroStats: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   heroStatItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   heroStatValue: {
-    fontSize: 24,
+    color: '#FFFFFF',
+    fontFamily: 'Outfit_800ExtraBold',
+    fontSize: 21,
     fontWeight: '800',
     marginBottom: 2,
   },
   heroStatLabel: {
-    fontSize: 12,
+    color: '#D1FAE5',
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize: 11,
     fontWeight: '500',
   },
   heroDivider: {
+    backgroundColor: 'rgba(209, 250, 229, 0.45)',
     width: 1,
     height: 32,
   },
@@ -268,53 +307,68 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     padding: 14,
-    alignItems: 'center',
-    gap: 4,
+    alignItems: 'flex-start',
+    gap: 5,
+    borderWidth: 1,
   },
+  quickIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   quickStatValue: {
-    fontSize: 18,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 17,
     fontWeight: '800',
   },
   quickStatLabel: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 10,
+    letterSpacing: 0.55,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 13,
     borderRadius: 16,
-    gap: 8,
-    marginBottom: 24,
+    gap: 10,
+    paddingHorizontal: 14,
+    marginBottom: 25,
   },
+  addBtnIcon: { height: 36, width: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
   addBtnText: {
     color: '#FFF',
-    fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 16,
   },
+  addBtnSubtext: { color: '#D1FAE5', fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
   sectionHeader: {
-    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 2,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 20,
+    lineHeight: 26,
+    marginBottom: 4,
   },
   sectionSub: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontStyle: 'italic',
+    marginTop: 2,
+    maxWidth: 245,
   },
+  sectionLink: { fontFamily: 'Outfit_700Bold', fontSize: 13, paddingBottom: 2 },
   seeAllBtn: {
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 13,
+    borderRadius: 16,
     alignItems: 'center',
-    borderWidth: 1.5,
-    marginTop: 4,
+    borderWidth: 1,
+    marginTop: 6,
     marginBottom: 20,
   },
   seeAllText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 14,
+    letterSpacing: 0.1,
   },
 });

@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -209,6 +210,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   personName: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 16,
@@ -223,16 +225,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   amountLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 11,
     fontWeight: '600',
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   amountValue: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '800',
   },
   inputLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
@@ -240,6 +245,7 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 14,
     padding: 14,
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '600',
     borderWidth: 1,
@@ -255,6 +261,7 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     color: '#FFF',
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '700',
   },
@@ -266,10 +273,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   fullBtnText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '700',
   },
   nonMoneyDesc: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 20,
@@ -279,10 +288,12 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   celebrationEmoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 56,
     marginBottom: 16,
   },
   celebrationText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
@@ -300,6 +311,7 @@ const styles = StyleSheet.create({
   },
   doneBtnText: {
     color: '#FFF',
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '700',
   },

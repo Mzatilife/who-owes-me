@@ -31,28 +31,29 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     minWidth: 100,
   },
   emoji: {
-    fontSize: 22,
-    marginBottom: 6,
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 20,
+    marginBottom: 8,
   },
   value: {
-    fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 4,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 20,
+    marginBottom: 3,
   },
   label: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 12,
     fontWeight: '600',
-    textAlign: 'center',
   },
   sublabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 11,
     marginTop: 2,
-    textAlign: 'center',
   },
 });

@@ -27,16 +27,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emoji: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 56,
     marginBottom: 16,
   },
   title: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 20,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,

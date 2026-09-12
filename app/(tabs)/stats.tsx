@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp, useColors } from '@/lib/AppContext';
 import { StatCard } from '@/components/StatCard';
 import { EmptyState } from '@/components/EmptyState';
@@ -108,6 +109,7 @@ export default function StatsScreen() {
         </Text>
 
         {/* Main stat cards */}
+        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Overview</Text>
         <View style={styles.statsRow}>
           <StatCard
             label="Total Owed"
@@ -157,6 +159,7 @@ export default function StatsScreen() {
         </View>
 
         {/* Longest outstanding */}
+        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Highlights</Text>
         {stats.longestDebt && (
           <View style={[styles.highlightCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.highlightHeader}>
@@ -231,13 +234,23 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   title: {
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 28,
-    fontWeight: '900',
+    lineHeight: 35,
     marginBottom: 4,
   },
   subtitle: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     marginBottom: 20,
+  },
+  groupTitle: {
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 14,
+    marginBottom: 8,
   },
   statsRow: {
     flexDirection: 'row',
@@ -245,34 +258,36 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   highlightCard: {
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     marginBottom: 12,
   },
   highlightHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: 10,
+    marginBottom: 10,
   },
   highlightLabel: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 13,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   highlightName: {
-    fontSize: 24,
-    fontWeight: '800',
-    marginBottom: 6,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 22,
+    marginBottom: 4,
   },
   highlightValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 6,
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 16,
+    marginBottom: 5,
   },
   highlightSub: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     lineHeight: 20,
   },

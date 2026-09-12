@@ -5,8 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
 import { Debt, SortOption } from '@/lib/types';
@@ -63,9 +63,12 @@ export default function PeopleScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={[styles.title, { color: colors.text }]}>People Who Owe You</Text>
+          <View style={styles.titleBlock}>
+            <Text style={[styles.title, { color: colors.text }]}>People</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Keep your debtors close.</Text>
+          </View>
           <TouchableOpacity
             onPress={() => setShowSortMenu(!showSortMenu)}
             style={[styles.sortBtn, { backgroundColor: colors.bgTertiary }]}
@@ -120,6 +123,9 @@ export default function PeopleScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>
+            {activeDebts.length} Active {activeDebts.length === 1 ? 'Debt' : 'Debts'}
+          </Text>
           {sorted.map((debt, i) => (
             <DebtCard
               key={debt.id}
@@ -172,32 +178,39 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingTop: 12,
-    borderBottomWidth: 1,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
+  titleBlock: { flex: 1, paddingRight: 10 },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 28,
+    lineHeight: 35,
+  },
+  subtitle: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 14,
+    marginTop: 1,
   },
   sortBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 9,
+    borderRadius: 12,
     gap: 6,
   },
   sortBtnText: {
+    fontFamily: 'Outfit_700Bold',
     fontSize: 12,
     fontWeight: '700',
   },
   sortMenu: {
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 4,
     marginBottom: 12,
     borderWidth: 1,
@@ -208,6 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   sortOptionText: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -216,20 +230,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 1,
     gap: 10,
   },
   searchBtnText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '500',
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 16,
+    paddingTop: 0,
+  },
+  groupTitle: {
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   totalCard: {
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     marginTop: 8,
     marginBottom: 20,
@@ -240,12 +263,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   totalLabel: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 15,
     fontWeight: '600',
   },
   totalValue: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 20,
   },
   totalDivider: {
     height: 1,

@@ -12,6 +12,16 @@ export async function loadState(): Promise<AppState> {
       if (parsed.settings && parsed.settings.biometricEnabled === undefined) {
         parsed.settings.biometricEnabled = false;
       }
+      if (parsed.onboardingComplete === undefined) {
+        const hasLegacyPreviewData = parsed.debts.some((debt) => debt.id.startsWith('seed-'));
+        if (hasLegacyPreviewData) {
+          const cleanState = getSeedState();
+          await saveState(cleanState);
+          return cleanState;
+        }
+        parsed.onboardingComplete = Boolean(parsed.settings?.userName?.trim());
+        await saveState(parsed);
+      }
       return parsed;
     }
     const seed = getSeedState();

@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#FFFFFF',
+    fontFamily: 'Outfit_700Bold',
     fontWeight: '700',
     letterSpacing: 0.5,
   },

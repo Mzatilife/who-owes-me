@@ -6,8 +6,8 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
 import { Avatar } from '@/components/Avatar';
@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 18,
     fontWeight: '800',
   },
@@ -174,6 +175,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -197,11 +199,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resultName: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 18,
     fontWeight: '800',
     marginBottom: 2,
   },
   resultCount: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontWeight: '500',
   },
@@ -212,14 +216,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   debtBullet: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     color: '#999',
   },
   debtDesc: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 15,
     fontWeight: '600',
   },
   debtStatus: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 13,
     fontStyle: 'italic',
   },
@@ -232,10 +239,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   totalLabel: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontWeight: '600',
   },
   totalValue: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 20,
     fontWeight: '800',
   },
@@ -247,6 +256,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   viewDetailsText: {
+    fontFamily: 'Outfit_400Regular',
     fontSize: 14,
     fontWeight: '700',
   },
