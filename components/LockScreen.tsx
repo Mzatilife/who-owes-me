@@ -68,7 +68,7 @@ export function LockScreen({ colors, onAuthenticate, biometricSupported, biometr
         ]}
       >
         <View style={[styles.iconContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Image source={require('@/assets/images/wom-icon.png')} style={styles.brandIcon} />
+          <Image source={require('@/assets/images/new-logo.png')} style={styles.brandIcon} />
         </View>
 
         <Text style={[styles.title, { color: colors.text }]}>Who Owes Me?</Text>
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   brandIcon: {
     width: 76,
     height: 76,
-    borderRadius: 22,
+    resizeMode: 'contain',
   },
   errorBox: {
     borderRadius: 14,

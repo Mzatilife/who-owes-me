@@ -4,19 +4,19 @@
     "slug": "who-owes-me",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/wom-icon.png",
+    "icon": "./assets/images/new-logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/images/wom-icon.png"
+      "icon": "./assets/images/new-logo.png"
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/wom-icon.png",
-        "backgroundColor": "#059669"
+        "foregroundImage": "./assets/images/new-logo.png",
+        "backgroundColor": "#161109"
       },
       "permissions": [
         "android.permission.USE_BIOMETRIC",
@@ -27,7 +27,7 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/wom-icon.png"
+      "favicon": "./assets/images/new-logo.png"
     },
     "plugins": [
       "expo-router",

@@ -13,7 +13,7 @@ export function OnboardingScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
         <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
-          <Image source={require('@/assets/images/wom-icon.png')} style={styles.icon} />
+          <Image source={require('@/assets/images/new-logo.png')} style={styles.icon} />
         </View>
         <Text style={[styles.eyebrow, { color: colors.primary }]}>WELCOME TO</Text>
         <Text style={[styles.title, { color: colors.text }]}>Who Owes Me?</Text>
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1, justifyContent: 'center', padding: 24 },
   iconWrap: { width: 74, height: 74, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 28 },
-  icon: { width: 64, height: 64, borderRadius: 20 },
+  icon: { width: 64, height: 64, resizeMode: 'contain' },
   eyebrow: { fontFamily: 'Outfit_700Bold', fontSize: 11, letterSpacing: 1.1, marginBottom: 5 },
   title: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 31, lineHeight: 39 },
   subtitle: { fontFamily: 'Outfit_400Regular', fontSize: 16, lineHeight: 23, marginTop: 8, marginBottom: 28 },

@@ -64,7 +64,7 @@ export default function SettingsScreen() {
         {/* Profile */}
         <View style={[styles.profileCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}>
           <View style={[styles.profileIconWrap, { backgroundColor: colors.card }]}>
-            <Image source={require('@/assets/images/wom-icon.png')} style={styles.profileIcon} />
+            <Image source={require('@/assets/images/new-logo.png')} style={styles.profileIcon} />
           </View>
           <View style={styles.profileDetails}>
             <Text style={[styles.profileLabel, { color: colors.primaryDark }]}>YOUR LEDGER</Text>
@@ -269,7 +269,7 @@ export default function SettingsScreen() {
 
         {showAbout && (
           <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Image source={require('@/assets/images/wom-icon.png')} style={styles.aboutIcon} />
+            <Image source={require('@/assets/images/new-logo.png')} style={styles.aboutIcon} />
             <Text style={[styles.aboutTitle, { color: colors.text }]}>Who Owes Me? v1.0.0</Text>
             <Text style={[styles.aboutText, { color: colors.textSecondary }]}>
               A serious debt tracker that accidentally became hilarious. Track what people owe you, generate funny reminders, and keep tabs on who's paying and who's dodging.
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   profileIcon: {
     width: 50,
     height: 50,
-    borderRadius: 15,
+    resizeMode: 'contain',
   },
   profileDetails: {
     flex: 1,
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   aboutIcon: {
     width: 56,
     height: 56,
-    borderRadius: 18,
+    resizeMode: 'contain',
     marginBottom: 14,
   },
   creator: {

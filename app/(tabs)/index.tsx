@@ -88,7 +88,7 @@ export default function HomeScreen() {
       >
         <View style={styles.brandRow}>
           <View style={[styles.brandMark, { backgroundColor: colors.primaryLight }]}>
-            <Image source={require('@/assets/images/wom-icon.png')} style={styles.brandImage} />
+            <Image source={require('@/assets/images/new-logo.png')} style={styles.brandImage} />
           </View>
           <View>
             <Text style={[styles.brandName, { color: colors.text }]}>Who Owes Me?</Text>
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandImage: { width: 38, height: 38, borderRadius: 12 },
+  brandImage: { width: 38, height: 38, resizeMode: 'contain' },
   brandName: { fontFamily: 'Outfit_700Bold', fontSize: 15 },
   brandTagline: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
   greetingSection: {
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
-    shadowColor: '#047857',
+    shadowColor: '#6E470B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22,
     shadowRadius: 16,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)', right: -52, top: -92,
   },
   heroLabel: {
-    color: '#D1FAE5',
+    color: '#FFF0BE',
     fontFamily: 'Outfit_700Bold',
     fontSize: 11,
     letterSpacing: 1.5,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     fontSize: 38,
     marginBottom: 20,
   },
-  heroCaption: { color: '#D1FAE5', fontFamily: 'Outfit_600SemiBold', fontSize: 13, marginTop: -13, marginBottom: 18 },
+  heroCaption: { color: '#FFF0BE', fontFamily: 'Outfit_600SemiBold', fontSize: 13, marginTop: -13, marginBottom: 18 },
   heroStats: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   heroStatLabel: {
-    color: '#D1FAE5',
+    color: '#FFF0BE',
     fontFamily: 'Outfit_600SemiBold',
     fontSize: 11,
     fontWeight: '500',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit_700Bold',
     fontSize: 16,
   },
-  addBtnSubtext: { color: '#D1FAE5', fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
+  addBtnSubtext: { color: '#FFF0BE', fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -43,7 +43,7 @@ function AppContent() {
         <Stack.Screen name="debt/[id]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style={colors.text === '#F5F5F7' ? 'light' : 'dark'} />
+      <StatusBar style={state.settings.themeMode === 'dark' ? 'light' : 'dark'} />
     </>
   );
 }
