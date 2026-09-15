@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
-import { Debt } from '@/lib/types';
+import { Debt, DebtDirection } from '@/lib/types';
 import { DebtCard } from '@/components/DebtCard';
 import { ReminderModal } from '@/components/ReminderModal';
 import { Toast } from '@/components/Toast';
@@ -28,22 +28,28 @@ export default function HomeScreen() {
   const [reminderVisible, setReminderVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
+  const [direction, setDirection] = useState<DebtDirection>('owed_to_me');
 
-  const totalOwed = activeDebts
+  const visibleDebts = activeDebts.filter((debt) =>
+    direction === 'i_owe' ? debt.direction === 'i_owe' : debt.direction !== 'i_owe'
+  );
+  const isIOwe = direction === 'i_owe';
+
+  const totalOwed = visibleDebts
     .filter((d) => d.category === 'money')
     .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
 
-  const peopleCount = new Set(activeDebts.map((d) => d.personName)).size;
-  const overdueDebts = activeDebts.filter((d) => {
+  const peopleCount = new Set(visibleDebts.map((d) => d.personName)).size;
+  const overdueDebts = visibleDebts.filter((d) => {
     const status = computeStatus(d.dueDate, d.dateAdded);
     return status !== 'fresh' && status !== 'remembering';
   });
   const overdueAmount = overdueDebts
     .filter((d) => d.category === 'money')
     .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
-  const thingsOwed = activeDebts.filter((d) => d.category !== 'money').length;
+  const thingsOwed = visibleDebts.filter((d) => d.category !== 'money').length;
 
-  const sortedUrgent = [...activeDebts].sort((a, b) => {
+  const sortedUrgent = [...visibleDebts].sort((a, b) => {
     const aDays = daysOverdue(a.dueDate, a.dateAdded);
     const bDays = daysOverdue(b.dueDate, b.dateAdded);
     return bDays - aDays;
@@ -96,6 +102,15 @@ export default function HomeScreen() {
           <Text style={[styles.greetingSub, { color: colors.textSecondary }]}>{subtitle}</Text>
         </View>
 
+        <View style={[styles.directionSwitch, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
+          <TouchableOpacity onPress={() => setDirection('owed_to_me')} style={[styles.directionOption, direction === 'owed_to_me' && { backgroundColor: colors.card }]}>
+            <Text style={[styles.directionText, { color: direction === 'owed_to_me' ? colors.primary : colors.textSecondary }]}>Owed to me</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setDirection('i_owe')} style={[styles.directionOption, direction === 'i_owe' && { backgroundColor: colors.card }]}>
+            <Text style={[styles.directionText, { color: direction === 'i_owe' ? colors.primary : colors.textSecondary }]}>I owe</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.ledgerSection}>
           <View style={styles.ledgerHeading}>
             <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Your Ledger</Text>
@@ -103,13 +118,13 @@ export default function HomeScreen() {
           </View>
           <LinearGradient colors={[colors.primaryDark, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
             <View style={styles.heroOrb} />
-            <Text style={styles.heroLabel}>TOTAL OWED TO YOU</Text>
+            <Text style={styles.heroLabel}>{isIOwe ? 'TOTAL YOU OWE' : 'TOTAL OWED TO YOU'}</Text>
             <Text style={styles.heroAmount}>{formatMoney(totalOwed, state.settings.defaultCurrency)}</Text>
             <Text style={styles.heroCaption}>Across {peopleCount} {peopleCount === 1 ? 'person' : 'people'} in your ledger</Text>
             <View style={styles.heroStats}>
               <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>{activeDebts.length}</Text>
-                <Text style={styles.heroStatLabel}>open debts</Text>
+                <Text style={styles.heroStatValue}>{visibleDebts.length}</Text>
+                <Text style={styles.heroStatLabel}>open records</Text>
               </View>
               <View style={styles.heroDivider} />
               <View style={styles.heroStatItem}>
@@ -119,7 +134,7 @@ export default function HomeScreen() {
               <View style={styles.heroDivider} />
               <View style={styles.heroStatItem}>
                 <Text style={styles.heroStatValue}>{thingsOwed}</Text>
-                <Text style={styles.heroStatLabel}>items owed</Text>
+                <Text style={styles.heroStatLabel}>{isIOwe ? 'items to return' : 'items owed'}</Text>
               </View>
             </View>
           </LinearGradient>
@@ -127,7 +142,7 @@ export default function HomeScreen() {
           <View style={styles.quickStatsRow}>
             <View style={[styles.quickStat, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[styles.quickIcon, { backgroundColor: colors.danger + '14' }]}><TrendingUp size={17} color={colors.danger} strokeWidth={2.5} /></View>
-              <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>OVERDUE VALUE</Text>
+              <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>{isIOwe ? 'PAYMENT DUE' : 'OVERDUE VALUE'}</Text>
               <Text style={[styles.quickStatValue, { color: colors.text }]}>{formatMoney(overdueAmount, state.settings.defaultCurrency)}</Text>
             </View>
             <View style={[styles.quickStat, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -138,20 +153,20 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => router.push('/add-debt')} activeOpacity={0.88} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
+        <TouchableOpacity onPress={() => router.push({ pathname: '/add-debt', params: { direction } })} activeOpacity={0.88} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
           <View style={styles.addBtnIcon}><Plus size={20} color="#FFF" strokeWidth={3} /></View>
-          <View><Text style={styles.addBtnText}>Add a debt</Text><Text style={styles.addBtnSubtext}>Keep the record straight</Text></View>
+          <View><Text style={styles.addBtnText}>{isIOwe ? 'Record what I owe' : 'Add a debt'}</Text><Text style={styles.addBtnSubtext}>Keep the record straight</Text></View>
         </TouchableOpacity>
 
         {/* Debts list or empty state */}
-        {activeDebts.length === 0 ? (
+        {visibleDebts.length === 0 ? (
           <EmptyState title={emptyMsg.title} subtitle={emptyMsg.subtitle} emoji="🕊️" colors={colors} />
         ) : (
           <>
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Most urgent cases</Text>
-                <Text style={[styles.sectionSub, { color: colors.textTertiary }]}>{activeDebts.length > 5 ? getManyDebtsMessage() : 'Sorted by who needs a reminder first.'}</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>{isIOwe ? 'Payments to make' : 'Most urgent cases'}</Text>
+                <Text style={[styles.sectionSub, { color: colors.textTertiary }]}>{visibleDebts.length > 5 ? getManyDebtsMessage() : isIOwe ? 'Stay on top of what you need to settle.' : 'Sorted by who needs a reminder first.'}</Text>
               </View>
               {sortedUrgent.length > 5 && <TouchableOpacity onPress={() => router.push('/people')}><Text style={[styles.sectionLink, { color: colors.primary }]}>See all</Text></TouchableOpacity>}
             </View>
@@ -234,6 +249,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 8,
   },
+  directionSwitch: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, padding: 4, marginBottom: 16 },
+  directionOption: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10 },
+  directionText: { fontFamily: 'Outfit_700Bold', fontSize: 13 },
   ledgerSection: {
     marginBottom: 20,
   },

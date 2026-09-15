@@ -25,6 +25,7 @@ export function DebtCard({ debt, colors, onPress, onRemind }: DebtCardProps) {
   const isPaid = debt.status === 'paid';
   const isWrittenOff = debt.status === 'written_off';
   const isInactive = isPaid || isWrittenOff;
+  const iOwe = debt.direction === 'i_owe';
   const dueLabel = debt.dueDate ? relativeDate(debt.dueDate, debt.dateAdded) : 'No due date set';
   const displayAmount = isMoney ? formatMoney(remaining, debt.currency) : debt.description;
   const statusLabel = isPaid ? 'Paid' : isWrittenOff ? 'Written off' : getStatusEmoji(status);
@@ -51,7 +52,7 @@ export function DebtCard({ debt, colors, onPress, onRemind }: DebtCardProps) {
           <View style={styles.personBlock}>
             <Avatar name={debt.personName} size={46} colors={colors} />
             <View style={styles.personCopy}>
-              <Text style={[styles.category, { color: colors.textTertiary }]}>{debt.category} debt</Text>
+              <Text style={[styles.category, { color: colors.textTertiary }]}>{iOwe ? 'I owe' : 'owed to me'} · {debt.category}</Text>
               <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{debt.personName}</Text>
             </View>
           </View>
@@ -60,7 +61,7 @@ export function DebtCard({ debt, colors, onPress, onRemind }: DebtCardProps) {
 
           <View style={[styles.amountPanel, { backgroundColor: colors.card + 'D9', borderColor: colors.border }]}>
           <View style={styles.amountCopy}>
-            <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{isMoney ? 'OUTSTANDING' : 'OWED TO YOU'}</Text>
+            <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{isMoney ? (iOwe ? 'YOU STILL OWE' : 'OUTSTANDING') : (iOwe ? 'YOU OWE' : 'OWED TO YOU')}</Text>
             <Text style={[styles.description, { color: colors.text }]} numberOfLines={1}>{debt.description}</Text>
           </View>
           <Text style={[styles.amount, { color: isPaid ? colors.success : isWrittenOff ? colors.textTertiary : colors.text }]} numberOfLines={1}>
@@ -90,7 +91,7 @@ export function DebtCard({ debt, colors, onPress, onRemind }: DebtCardProps) {
           </View>
           </View>
 
-          {!isInactive && (
+          {!isInactive && !iOwe && (
             <TouchableOpacity onPress={onRemind} activeOpacity={0.8} style={[styles.remindBtn, { backgroundColor: colors.primary }]}>
               <Bell size={15} color="#FFFFFF" strokeWidth={2.7} />
               <Text style={styles.remindBtnText}>Send a friendly reminder</Text>

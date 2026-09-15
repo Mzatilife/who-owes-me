@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
-import { Debt, SortOption } from '@/lib/types';
+import { Debt, DebtDirection, SortOption } from '@/lib/types';
 import { DebtCard } from '@/components/DebtCard';
 import { ReminderModal } from '@/components/ReminderModal';
 import { EmptyState } from '@/components/EmptyState';
@@ -34,14 +34,20 @@ export default function PeopleScreen() {
   const [reminderDebt, setReminderDebt] = useState<Debt | null>(null);
   const [reminderVisible, setReminderVisible] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
+  const [direction, setDirection] = useState<DebtDirection>('owed_to_me');
 
-  const sorted = useMemo(() => sortDebts(activeDebts, sort), [activeDebts, sort, sortDebts]);
+  const visibleDebts = activeDebts.filter((debt) =>
+    direction === 'i_owe' ? debt.direction === 'i_owe' : debt.direction !== 'i_owe'
+  );
+  const isIOwe = direction === 'i_owe';
 
-  const totalOwed = activeDebts
+  const sorted = useMemo(() => sortDebts(visibleDebts, sort), [visibleDebts, sort, sortDebts]);
+
+  const totalOwed = visibleDebts
     .filter((d) => d.category === 'money')
     .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
 
-  const peopleCount = new Set(activeDebts.map((d) => d.personName)).size;
+  const peopleCount = new Set(visibleDebts.map((d) => d.personName)).size;
 
   const handleRemind = (debt: Debt) => {
     setReminderDebt(debt);
@@ -67,7 +73,7 @@ export default function PeopleScreen() {
         <View style={styles.headerTop}>
           <View style={styles.titleBlock}>
             <Text style={[styles.title, { color: colors.text }]}>People</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Keep your debtors close.</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{isIOwe ? 'Keep your payments in view.' : 'Keep your debtors close.'}</Text>
           </View>
           <TouchableOpacity
             onPress={() => setShowSortMenu(!showSortMenu)}
@@ -76,6 +82,11 @@ export default function PeopleScreen() {
             <ArrowUpDown size={16} color={colors.text} strokeWidth={2.5} />
             <Text style={[styles.sortBtnText, { color: colors.text }]}>{currentSortLabel}</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={[styles.directionSwitch, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
+          <TouchableOpacity onPress={() => setDirection('owed_to_me')} style={[styles.directionOption, direction === 'owed_to_me' && { backgroundColor: colors.card }]}><Text style={[styles.directionText, { color: direction === 'owed_to_me' ? colors.primary : colors.textSecondary }]}>Owed to me</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => setDirection('i_owe')} style={[styles.directionOption, direction === 'i_owe' && { backgroundColor: colors.card }]}><Text style={[styles.directionText, { color: direction === 'i_owe' ? colors.primary : colors.textSecondary }]}>I owe</Text></TouchableOpacity>
         </View>
 
         {showSortMenu && (
@@ -110,11 +121,11 @@ export default function PeopleScreen() {
           style={[styles.searchBtn, { backgroundColor: colors.bgTertiary }]}
         >
           <SearchIcon size={18} color={colors.textTertiary} strokeWidth={2.5} />
-          <Text style={[styles.searchBtnText, { color: colors.textTertiary }]}>Search debtors...</Text>
+          <Text style={[styles.searchBtnText, { color: colors.textTertiary }]}>Search people...</Text>
         </TouchableOpacity>
       </View>
 
-      {activeDebts.length === 0 ? (
+      {visibleDebts.length === 0 ? (
         <ScrollView contentContainerStyle={{ flex: 1 }}>
           <EmptyState title={emptyMsg.title} subtitle={emptyMsg.subtitle} emoji="🕊️" colors={colors} />
         </ScrollView>
@@ -124,7 +135,7 @@ export default function PeopleScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>
-            {activeDebts.length} Active {activeDebts.length === 1 ? 'Debt' : 'Debts'}
+            {visibleDebts.length} Active {visibleDebts.length === 1 ? 'Record' : 'Records'}
           </Text>
           {sorted.map((debt, i) => (
             <DebtCard
@@ -140,14 +151,14 @@ export default function PeopleScreen() {
           {/* Total at bottom */}
           <View style={[styles.totalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.totalRow}>
-              <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total Money Owed</Text>
+              <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{isIOwe ? 'Total Money You Owe' : 'Total Money Owed'}</Text>
               <Text style={[styles.totalValue, { color: colors.text }]}>
                 {formatMoney(totalOwed, 'MWK')}
               </Text>
             </View>
             <View style={[styles.totalDivider, { backgroundColor: colors.border }]} />
             <View style={styles.totalRow}>
-              <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Active Debtors</Text>
+              <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{isIOwe ? 'People You Owe' : 'Active Debtors'}</Text>
               <Text style={[styles.totalValue, { color: colors.text }]}>{peopleCount}</Text>
             </View>
           </View>
@@ -196,6 +207,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 1,
   },
+  directionSwitch: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, padding: 4, marginBottom: 12 },
+  directionOption: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 10 },
+  directionText: { fontFamily: 'Outfit_700Bold', fontSize: 13 },
   sortBtn: {
     flexDirection: 'row',
     alignItems: 'center',

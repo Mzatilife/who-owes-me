@@ -8,6 +8,8 @@ export type PaymentStatus = 'outstanding' | 'partial' | 'paid' | 'written_off';
 
 export type CurrencyCode = 'MWK' | 'USD' | 'ZAR' | 'GBP' | 'EUR';
 
+export type DebtDirection = 'owed_to_me' | 'i_owe';
+
 export type ThemeMode = 'light' | 'dark';
 
 export type SortOption = 'highest' | 'oldest' | 'newest' | 'overdue' | 'name';
@@ -38,6 +40,8 @@ export interface Debt {
   currency: CurrencyCode;
   description: string;
   category: DebtCategory;
+  /** Missing on older saved records: treat those as owed to the user. */
+  direction?: DebtDirection;
   dateAdded: string;
   dueDate?: string;
   notes?: string;

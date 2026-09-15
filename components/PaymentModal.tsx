@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Pressable,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { ThemeColors } from '@/lib/theme';
 import { Debt } from '@/lib/types';
@@ -38,6 +40,7 @@ export function PaymentModal({
   if (!debt) return null;
 
   const isMoney = debt.category === 'money';
+  const iOwe = debt.direction === 'i_owe';
   const remaining = getRemainingAmount(debt.amount, debt.payments);
   const totalPaid = getTotalPaid(debt.payments);
 
@@ -46,7 +49,7 @@ export function PaymentModal({
     if (isNaN(val) || val <= 0) return;
     onAddPayment(debt.id, val);
     if (val >= remaining) {
-      setCelebration(getPaymentCelebration(debt.personName, remaining, daysSince(debt.dateAdded)));
+      setCelebration(iOwe ? `Payment recorded. ${debt.personName} is all settled.` : getPaymentCelebration(debt.personName, remaining, daysSince(debt.dateAdded)));
     } else {
       setCelebration(getPartialPaymentMessage(debt.personName));
     }
@@ -55,7 +58,7 @@ export function PaymentModal({
 
   const handleFullPayment = () => {
     onMarkFullyPaid(debt.id);
-    setCelebration(getPaymentCelebration(debt.personName, remaining, daysSince(debt.dateAdded)));
+    setCelebration(iOwe ? `Marked as settled with ${debt.personName}.` : getPaymentCelebration(debt.personName, remaining, daysSince(debt.dateAdded)));
     setAmount('');
   };
 
@@ -67,6 +70,7 @@ export function PaymentModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <Pressable style={styles.overlay} onPress={handleClose}>
         <Pressable
           style={[styles.sheet, { backgroundColor: colors.card }]}
@@ -74,7 +78,7 @@ export function PaymentModal({
         >
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>
-              {celebration ? 'Payment Received!' : 'Record Payment'}
+              {celebration ? 'Payment recorded!' : iOwe ? 'Record your payment' : 'Record payment'}
             </Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
               <X size={22} color={colors.textSecondary} strokeWidth={2.5} />
@@ -106,7 +110,7 @@ export function PaymentModal({
                   <View style={styles.amountRow}>
                     <View style={styles.amountBox}>
                       <Text style={[styles.amountLabel, { color: colors.textTertiary }]}>
-                        Total Debt
+                        Original amount
                       </Text>
                       <Text style={[styles.amountValue, { color: colors.text }]}>
                         {formatMoney(debt.amount, debt.currency)}
@@ -114,7 +118,7 @@ export function PaymentModal({
                     </View>
                     <View style={styles.amountBox}>
                       <Text style={[styles.amountLabel, { color: colors.textTertiary }]}>
-                        Paid So Far
+                        Paid so far
                       </Text>
                       <Text style={[styles.amountValue, { color: colors.success }]}>
                         {formatMoney(totalPaid, debt.currency)}
@@ -122,7 +126,7 @@ export function PaymentModal({
                     </View>
                     <View style={styles.amountBox}>
                       <Text style={[styles.amountLabel, { color: colors.textTertiary }]}>
-                        Remaining
+                        Still owed
                       </Text>
                       <Text style={[styles.amountValue, { color: colors.danger }]}>
                         {formatMoney(remaining, debt.currency)}
@@ -131,7 +135,7 @@ export function PaymentModal({
                   </View>
 
                   <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
-                    Payment amount
+                    {iOwe ? 'Amount you paid' : 'Payment amount'}
                   </Text>
                   <TextInput
                     style={[styles.input, { backgroundColor: colors.bgTertiary, color: colors.text, borderColor: colors.border }]}
@@ -147,7 +151,7 @@ export function PaymentModal({
                       onPress={handlePartial}
                       style={[styles.actionBtn, { backgroundColor: colors.primary }]}
                     >
-                      <Text style={styles.actionBtnText}>Add Partial Payment</Text>
+                      <Text style={styles.actionBtnText}>Add partial payment</Text>
                     </TouchableOpacity>
                   </View>
 
@@ -179,6 +183,7 @@ export function PaymentModal({
           )}
         </Pressable>
       </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

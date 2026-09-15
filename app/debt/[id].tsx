@@ -32,7 +32,9 @@ export default function DebtDetailScreen() {
 
   const personDebts = useMemo(() => {
     if (!debt) return [];
-    return state.debts.filter((d) => d.personName === debt.personName);
+    return state.debts.filter(
+      (d) => d.personName === debt.personName && (d.direction === 'i_owe') === (debt.direction === 'i_owe')
+    );
   }, [debt, state.debts]);
 
   if (!debt) {
@@ -49,6 +51,7 @@ export default function DebtDetailScreen() {
   }
 
   const isMoney = debt.category === 'money';
+  const iOwe = debt.direction === 'i_owe';
   const remaining = getRemainingAmount(debt.amount, debt.payments);
   const totalPaid = getTotalPaid(debt.payments);
   const status = computeStatus(debt.dueDate, debt.dateAdded);
@@ -134,7 +137,7 @@ export default function DebtDetailScreen() {
             <View style={styles.personInfo}>
               <Text style={[styles.personName, { color: colors.text }]}>{debt.personName}</Text>
               <Text style={[styles.personCategory, { color: colors.textSecondary }]}>
-                {debt.category} debt
+                {iOwe ? 'I owe' : 'Owed to me'} · {debt.category}
               </Text>
             </View>
             {!isInactive && (
@@ -149,7 +152,7 @@ export default function DebtDetailScreen() {
           {/* Amount */}
           <View style={[styles.amountSection, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
             <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>
-              {isMoney ? 'Outstanding' : 'What they owe'}
+              {isMoney ? (iOwe ? 'You still owe' : 'Outstanding') : (iOwe ? 'What you owe' : 'What they owe')}
             </Text>
             <Text style={[styles.amountValue, { color: isInactive ? colors.textTertiary : colors.text }]}>
               {isMoney ? formatMoney(remaining, debt.currency) : debt.description}
@@ -257,10 +260,10 @@ export default function DebtDetailScreen() {
         )}
 
         {/* Person's debt history */}
-        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>History & reputation</Text>
+        <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>{iOwe ? 'History' : 'History & reputation'}</Text>
         <View style={[styles.historyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.historyTitle, { color: colors.text }]}>
-            {debt.personName}'s Debt History
+            {debt.personName}'s {iOwe ? 'Record History' : 'Debt History'}
           </Text>
           {personDebts.map((d) => (
             <View key={d.id} style={styles.historyItem}>
@@ -282,7 +285,7 @@ export default function DebtDetailScreen() {
           ))}
 
           {/* Reputation */}
-          <View style={[styles.reputationBox, { borderTopColor: colors.border }]}>
+          {!iOwe && <View style={[styles.reputationBox, { borderTopColor: colors.border }]}>
             <Text style={[styles.reputationTitle, { color: colors.text }]}>
               {debt.personName}'s Debt Reputation
             </Text>
@@ -290,34 +293,34 @@ export default function DebtDetailScreen() {
             <Text style={[styles.reputationReview, { color: colors.textSecondary }]}>
               "{reputation.review}"
             </Text>
-          </View>
+          </View>}
         </View>
 
         {/* Action buttons */}
         {!isInactive && (
           <><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Actions</Text><View style={styles.actions}>
-            <TouchableOpacity
+            {!iOwe && <TouchableOpacity
               onPress={() => setReminderVisible(true)}
               style={[styles.actionBtn, { backgroundColor: colors.primary }]}
             >
               <Bell size={18} color="#FFF" strokeWidth={2.5} />
               <Text style={styles.actionBtnText}>Remind {debt.personName.split(' ')[0]}</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
 
             <TouchableOpacity
               onPress={() => setPaymentVisible(true)}
               style={[styles.actionBtn, { backgroundColor: colors.success }]}
             >
               <CheckCircle size={18} color="#FFF" strokeWidth={2.5} />
-              <Text style={styles.actionBtnText}>Record Payment</Text>
+              <Text style={styles.actionBtnText}>{iOwe ? 'Record My Payment' : 'Record Payment'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {!iOwe && <TouchableOpacity
               onPress={handleWriteOff}
               style={[styles.actionBtn, { backgroundColor: 'transparent', borderColor: colors.danger, borderWidth: 1.5 }]}
             >
               <Text style={[styles.actionBtnText, { color: colors.danger }]}>Write Off as Charity 💀</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
           </View>
           </>
         )}

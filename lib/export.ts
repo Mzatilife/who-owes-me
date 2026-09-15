@@ -4,6 +4,7 @@ import { formatMoney, getTotalPaid, getRemainingAmount, formatDate } from './uti
 export function debtsToCSV(debts: Debt[]): string {
   const headers = [
     'Person',
+    'Direction',
     'Description',
     'Category',
     'Amount',
@@ -22,6 +23,7 @@ export function debtsToCSV(debts: Debt[]): string {
     const remaining = getRemainingAmount(d.amount, d.payments);
     return [
       escapeCSV(d.personName),
+      d.direction === 'i_owe' ? 'I owe' : 'Owed to me',
       escapeCSV(d.description),
       d.category,
       d.amount.toString(),

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useApp, useColors } from '@/lib/AppContext';
-import { DebtCategory, CurrencyCode } from '@/lib/types';
+import { DebtCategory, CurrencyCode, DebtDirection } from '@/lib/types';
 import { CURRENCIES } from '@/lib/utils';
 import { getRandomConfirmation } from '@/lib/humor';
 import { Toast } from '@/components/Toast';
@@ -29,6 +31,7 @@ const CATEGORIES: { id: DebtCategory; label: string; emoji: string }[] = [
 export default function AddDebtScreen() {
   const { state, colors, addDebt, checkAchievements } = useApp();
   const router = useRouter();
+  const { direction: initialDirection } = useLocalSearchParams<{ direction?: DebtDirection }>();
 
   const [personName, setPersonName] = useState('');
   const [description, setDescription] = useState('');
@@ -38,9 +41,16 @@ export default function AddDebtScreen() {
   const [dueDate, setDueDate] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [notes, setNotes] = useState('');
+  const [direction, setDirection] = useState<DebtDirection>(initialDirection === 'i_owe' ? 'i_owe' : 'owed_to_me');
   const [showCurrencies, setShowCurrencies] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Scroll after the keyboard has started opening, keeping the focused field in view.
+  const revealField = (y: number) => {
+    setTimeout(() => scrollRef.current?.scrollTo({ y, animated: true }), 120);
+  };
 
   const isMoney = category === 'money';
   const canSave = personName.trim().length > 0 && description.trim().length > 0 && (!isMoney || (parseFloat(amount) > 0 && !isNaN(parseFloat(amount))));
@@ -54,6 +64,7 @@ export default function AddDebtScreen() {
       amount: isMoney ? parseFloat(amount) : 0,
       currency,
       category,
+      direction,
       dateAdded: new Date().toISOString(),
       dueDate: dueDate || undefined,
       notes: notes.trim() || undefined,
@@ -86,23 +97,31 @@ export default function AddDebtScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
+      <KeyboardAvoidingView style={styles.keyboardSafe} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={8}>
       <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
+        <View style={[styles.directionSwitch, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
+          <TouchableOpacity onPress={() => setDirection('owed_to_me')} style={[styles.directionOption, direction === 'owed_to_me' && { backgroundColor: colors.card }]}><Text style={[styles.directionText, { color: direction === 'owed_to_me' ? colors.primary : colors.textSecondary }]}>Owed to me</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => setDirection('i_owe')} style={[styles.directionOption, direction === 'i_owe' && { backgroundColor: colors.card }]}><Text style={[styles.directionText, { color: direction === 'i_owe' ? colors.primary : colors.textSecondary }]}>I owe</Text></TouchableOpacity>
+        </View>
         <View style={styles.formHeading}>
           <View style={[styles.formHeadingIcon, { backgroundColor: colors.primaryLight }]}><UserRound size={18} color={colors.primary} strokeWidth={2.5} /></View>
           <View><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Debt details</Text><Text style={[styles.groupHint, { color: colors.textTertiary }]}>Who and what is being tracked?</Text></View>
         </View>
         <View style={[styles.formSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Who owes you?</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>{direction === 'i_owe' ? 'Who do you owe?' : 'Who owes you?'}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }]}
             placeholder="e.g. John Banda"
             placeholderTextColor={colors.textTertiary}
             value={personName}
             onChangeText={setPersonName}
+            onFocus={() => revealField(0)}
           />
 
           <Text style={[styles.label, { color: colors.textSecondary }]}>What type of debt?</Text>
@@ -132,13 +151,14 @@ export default function AddDebtScreen() {
           ))}
         </View>
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>What do they owe you?</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>{direction === 'i_owe' ? 'What do you owe?' : 'What do they owe you?'}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }]}
             placeholder={isMoney ? 'e.g. Cash loan' : 'e.g. One lunch'}
             placeholderTextColor={colors.textTertiary}
             value={description}
             onChangeText={setDescription}
+            onFocus={() => revealField(170)}
           />
         </View>
 
@@ -147,7 +167,7 @@ export default function AddDebtScreen() {
           <>
             <View style={styles.formHeading}>
               <View style={[styles.formHeadingIcon, { backgroundColor: colors.accent + '16' }]}><ReceiptText size={18} color={colors.accent} strokeWidth={2.5} /></View>
-              <View><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Amount</Text><Text style={[styles.groupHint, { color: colors.textTertiary }]}>The amount still owed to you.</Text></View>
+              <View><Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Amount</Text><Text style={[styles.groupHint, { color: colors.textTertiary }]}>{direction === 'i_owe' ? 'The amount you still need to pay.' : 'The amount still owed to you.'}</Text></View>
             </View>
             <View style={[styles.formSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.amountRow}>
@@ -167,6 +187,7 @@ export default function AddDebtScreen() {
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={setAmount}
+                onFocus={() => revealField(360)}
               />
             </View>
 
@@ -232,6 +253,7 @@ export default function AddDebtScreen() {
             keyboardType="phone-pad"
             value={contactPhone}
             onChangeText={setContactPhone}
+            onFocus={() => revealField(540)}
           />
         </View>
 
@@ -246,6 +268,7 @@ export default function AddDebtScreen() {
             onChangeText={setNotes}
             multiline
             textAlignVertical="top"
+            onFocus={() => revealField(640)}
           />
         </View>
         </View>
@@ -260,11 +283,12 @@ export default function AddDebtScreen() {
           ]}
         >
           <Check size={22} color="#FFF" strokeWidth={3} />
-          <View><Text style={[styles.saveBtnText, { color: canSave ? '#FFF' : colors.textTertiary }]}>Record this debt</Text><Text style={[styles.saveBtnSubtext, { color: canSave ? '#D1FAE5' : colors.textTertiary }]}>Add it to your ledger</Text></View>
+          <View><Text style={[styles.saveBtnText, { color: canSave ? '#FFF' : colors.textTertiary }]}>{direction === 'i_owe' ? 'Record what I owe' : 'Record this debt'}</Text><Text style={[styles.saveBtnSubtext, { color: canSave ? '#D1FAE5' : colors.textTertiary }]}>Add it to your ledger</Text></View>
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <Toast
         message={toast.message}
@@ -280,6 +304,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardSafe: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -309,7 +334,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingTop: 16,
+    paddingBottom: 280,
   },
+  directionSwitch: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, padding: 4, marginBottom: 8 },
+  directionOption: { flex: 1, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
+  directionText: { fontFamily: 'Outfit_700Bold', fontSize: 13 },
   formHeading: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 8 },
   formHeadingIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   groupTitle: { fontFamily: 'Outfit_700Bold', fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 },

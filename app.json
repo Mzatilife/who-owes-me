@@ -13,6 +13,7 @@
       "icon": "./assets/images/wom-icon.png"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wom-icon.png",
         "backgroundColor": "#059669"
