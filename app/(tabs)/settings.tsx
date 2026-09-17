@@ -192,6 +192,9 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        <Text style={[styles.securityDesc, { color: colors.textSecondary }]}>
+          Due-date alerts arrive at 9:00 AM. Daily starts 3 days before, weekly 7 days before, and monthly 30 days before.
+        </Text>
 
         {/* Security */}
         <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Security</Text>

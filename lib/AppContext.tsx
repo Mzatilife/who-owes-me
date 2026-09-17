@@ -6,6 +6,7 @@ import { generateId, daysSince, getTotalPaid, getRemainingAmount } from './utils
 import { ThemeColors } from './theme';
 import { getTheme } from './theme';
 import { ThemeMode } from './types';
+import { syncDueDateReminders } from './notifications';
 
 interface AppContextValue {
   state: AppState;
@@ -49,6 +50,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       saveState(state);
     }
   }, [state]);
+
+  useEffect(() => {
+    if (!state?.onboardingComplete) return;
+
+    syncDueDateReminders(state.debts, state.settings).catch((error) => {
+      // Notifications are optional; a denied device permission must not affect debt tracking.
+      console.warn('Could not schedule due-date reminders', error);
+    });
+  }, [state?.debts, state?.settings, state?.onboardingComplete]);
 
   const updateState = useCallback((updater: (prev: AppState) => AppState) => {
     setState((prev) => (prev ? updater(prev) : prev));

@@ -12,6 +12,16 @@ import { LockScreen } from '@/components/LockScreen';
 import { OnboardingScreen } from '@/components/OnboardingScreen';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { configureDefaultTypography } from '@/lib/typography';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 SplashScreen.preventAutoHideAsync();
 
