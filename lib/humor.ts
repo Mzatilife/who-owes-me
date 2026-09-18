@@ -118,7 +118,8 @@ export function generateReminder(
   amount: number,
   currency: CurrencyCode,
   description: string,
-  isMoney: boolean
+  isMoney: boolean,
+  senderName = 'Your friendly creditor'
 ): string {
   const subject = isMoney ? `${currency === 'MWK' ? 'K' : ''}${amount.toLocaleString()}` : description;
 
@@ -136,7 +137,7 @@ export function generateReminder(
       return `${personName}, I don't want to pressure you, but your ${subject} has been living in your account for far too long. It misses me.`;
 
     case 'dramatic':
-      return `🚨 FINAL NOTICE 🚨\nThe Republic of Mahala has officially declared your ${subject} overdue.\nYou have been given multiple opportunities to restore peace.\nPayment is strongly encouraged. 😂`;
+      return `🚨 FINAL NOTICE 🚨\nThe Republic of ${senderName} has officially declared your ${subject} overdue.\nYou have been given multiple opportunities to restore peace.\nPayment is strongly encouraged. 😂`;
   }
 }
 

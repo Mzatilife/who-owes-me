@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Toast } from '@/components/Toast';
 import { formatTotalsByCurrency } from '@/lib/utils';
 import { computeStatus, getEmptyStateMessage } from '@/lib/humor';
-import { ArrowUpDown, Search as SearchIcon } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpDown, ArrowUpRight, CheckCircle2, Clock3, Layers3, Search as SearchIcon } from 'lucide-react-native';
 
 const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: 'overdue', label: 'Most Overdue' },
@@ -27,7 +27,7 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
 ];
 
 export default function PeopleScreen() {
-  const { activeDebts, colors, sortDebts, recordReminder, checkAchievements } = useApp();
+  const { debts, colors, sortDebts, recordReminder, checkAchievements } = useApp();
   const router = useRouter();
   const [sort, setSort] = useState<SortOption>('overdue');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -35,10 +35,14 @@ export default function PeopleScreen() {
   const [reminderVisible, setReminderVisible] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
   const [direction, setDirection] = useState<DebtDirection>('owed_to_me');
+  const [recordFilter, setRecordFilter] = useState<'active' | 'settled' | 'all'>('active');
 
-  const visibleDebts = activeDebts.filter((debt) =>
-    direction === 'i_owe' ? debt.direction === 'i_owe' : debt.direction !== 'i_owe'
-  );
+  const isActive = (debt: Debt) => debt.status !== 'paid' && debt.status !== 'written_off';
+  const visibleDebts = debts.filter((debt) => {
+    const matchesDirection = direction === 'i_owe' ? debt.direction === 'i_owe' : debt.direction !== 'i_owe';
+    const matchesFilter = recordFilter === 'all' || (recordFilter === 'active' ? isActive(debt) : !isActive(debt));
+    return matchesDirection && matchesFilter;
+  });
   const isIOwe = direction === 'i_owe';
 
   const sorted = useMemo(() => sortDebts(visibleDebts, sort), [visibleDebts, sort, sortDebts]);
@@ -46,6 +50,7 @@ export default function PeopleScreen() {
   const totalOwed = formatTotalsByCurrency(visibleDebts);
 
   const peopleCount = new Set(visibleDebts.map((d) => d.personName)).size;
+  const filterLabel = recordFilter === 'active' ? 'Active' : recordFilter === 'settled' ? 'Settled / written off' : 'All';
 
   const handleRemind = (debt: Debt) => {
     setReminderDebt(debt);
@@ -84,10 +89,13 @@ export default function PeopleScreen() {
           </TouchableOpacity>
         </View>
 
+        <Text style={[styles.controlLabel, { color: colors.textTertiary }]}>LEDGER</Text>
         <View style={[styles.directionSwitch, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
-          <TouchableOpacity onPress={() => setDirection('owed_to_me')} style={[styles.directionOption, direction === 'owed_to_me' && { backgroundColor: colors.card }]}><Text style={[styles.directionText, { color: direction === 'owed_to_me' ? colors.primary : colors.textSecondary }]}>Owed to me</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => setDirection('i_owe')} style={[styles.directionOption, direction === 'i_owe' && { backgroundColor: colors.card }]}><Text style={[styles.directionText, { color: direction === 'i_owe' ? colors.primary : colors.textSecondary }]}>I owe</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => setDirection('owed_to_me')} style={[styles.directionOption, direction === 'owed_to_me' && { backgroundColor: colors.primary }]}><ArrowDownLeft size={16} color={direction === 'owed_to_me' ? '#FFF' : colors.textSecondary} strokeWidth={2.8} /><View><Text style={[styles.directionText, { color: direction === 'owed_to_me' ? '#FFF' : colors.textSecondary }]}>Owed to me</Text><Text style={[styles.directionHint, { color: direction === 'owed_to_me' ? '#D1FAE5' : colors.textTertiary }]}>Their balances</Text></View></TouchableOpacity>
+          <TouchableOpacity onPress={() => setDirection('i_owe')} style={[styles.directionOption, direction === 'i_owe' && { backgroundColor: colors.primary }]}><ArrowUpRight size={16} color={direction === 'i_owe' ? '#FFF' : colors.textSecondary} strokeWidth={2.8} /><View><Text style={[styles.directionText, { color: direction === 'i_owe' ? '#FFF' : colors.textSecondary }]}>I owe</Text><Text style={[styles.directionHint, { color: direction === 'i_owe' ? '#D1FAE5' : colors.textTertiary }]}>My balances</Text></View></TouchableOpacity>
         </View>
+
+        <View style={styles.statusRow}><Text style={[styles.controlLabel, { color: colors.textTertiary, marginBottom: 0 }]}>SHOW</Text><View style={styles.statusChips}>{([{ id: 'active', label: 'Active', icon: Clock3 }, { id: 'settled', label: 'Settled', icon: CheckCircle2 }, { id: 'all', label: 'All records', icon: Layers3 }] as const).map(({ id, label, icon: Icon }) => { const selected = recordFilter === id; return <TouchableOpacity key={id} onPress={() => setRecordFilter(id)} style={[styles.statusChip, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primaryLight : colors.card }]}><Icon size={14} color={selected ? colors.primary : colors.textTertiary} strokeWidth={2.6} /><Text style={[styles.statusChipText, { color: selected ? colors.primary : colors.textSecondary }]}>{label}</Text></TouchableOpacity>; })}</View></View>
 
         {showSortMenu && (
           <View style={[styles.sortMenu, { backgroundColor: colors.bgSecondary, borderColor: colors.border }]}>
@@ -135,7 +143,7 @@ export default function PeopleScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>
-            {visibleDebts.length} Active {visibleDebts.length === 1 ? 'Record' : 'Records'}
+            {visibleDebts.length} {filterLabel} {visibleDebts.length === 1 ? 'Record' : 'Records'}
           </Text>
           {sorted.map((debt, i) => (
             <DebtCard
@@ -149,7 +157,7 @@ export default function PeopleScreen() {
           ))}
 
           {/* Total at bottom */}
-          <View style={[styles.totalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {recordFilter === 'active' && <View style={[styles.totalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.totalRow}>
               <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{isIOwe ? 'Total Money You Owe' : 'Total Money Owed'}</Text>
               <Text style={[styles.totalValue, { color: colors.text }]}>
@@ -162,6 +170,7 @@ export default function PeopleScreen() {
               <Text style={[styles.totalValue, { color: colors.text }]}>{peopleCount}</Text>
             </View>
           </View>
+          }
         </ScrollView>
       )}
 
@@ -207,9 +216,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 1,
   },
-  directionSwitch: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, padding: 4, marginBottom: 12 },
-  directionOption: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 10 },
+  controlLabel: { fontFamily: 'Outfit_700Bold', fontSize: 10, letterSpacing: 1.1, marginBottom: 7 },
+  directionSwitch: { flexDirection: 'row', borderWidth: 1, borderRadius: 18, padding: 4, marginBottom: 14 },
+  directionOption: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 11, paddingVertical: 10, borderRadius: 14, gap: 8 },
   directionText: { fontFamily: 'Outfit_700Bold', fontSize: 13 },
+  directionHint: { fontFamily: 'Outfit_400Regular', fontSize: 10, marginTop: 1 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  statusChips: { flexDirection: 'row', gap: 6 },
+  statusChip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 },
+  statusChipText: { fontFamily: 'Outfit_700Bold', fontSize: 11 },
   sortBtn: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -13,6 +13,7 @@ import {
 import { ThemeColors } from '@/lib/theme';
 import { ReminderTone, Debt } from '@/lib/types';
 import { generateReminder } from '@/lib/humor';
+import { useApp } from '@/lib/AppContext';
 import { formatMoney, getRemainingAmount } from '@/lib/utils';
 import { X, Copy, Share as ShareIcon, Check } from 'lucide-react-native';
 
@@ -33,6 +34,7 @@ const TONES: { id: ReminderTone; label: string; emoji: string }[] = [
 ];
 
 export function ReminderModal({ visible, debt, colors, onClose, onSent }: ReminderModalProps) {
+  const { state } = useApp();
   const [selectedTone, setSelectedTone] = useState<ReminderTone>('funny');
   const [copied, setCopied] = useState(false);
 
@@ -50,7 +52,8 @@ export function ReminderModal({ visible, debt, colors, onClose, onSent }: Remind
     remaining,
     debt.currency,
     debt.description,
-    isMoney
+    isMoney,
+    state.settings.userName.trim() || 'Your friendly creditor'
   );
 
   const handleShare = async () => {
