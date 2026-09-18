@@ -1,4 +1,4 @@
-import { CurrencyCode } from './types';
+import { CurrencyCode, Debt } from './types';
 
 export const CURRENCIES: { code: CurrencyCode; symbol: string; label: string }[] = [
   { code: 'MWK', symbol: 'K', label: 'Malawian Kwacha' },
@@ -16,6 +16,22 @@ export function formatMoney(amount: number, currency: CurrencyCode): string {
   const symbol = getCurrencySymbol(currency);
   const formatted = amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
   return `${symbol}${formatted}`;
+}
+
+/**
+ * Keeps amounts in their original currencies instead of adding unlike values
+ * together (for example, MWK and USD). Useful for ledger summaries.
+ */
+export function formatTotalsByCurrency(
+  debts: Debt[],
+  amountFor: (debt: Debt) => number = (debt) => getRemainingAmount(debt.amount, debt.payments)
+): string {
+  return CURRENCIES.flatMap(({ code }) => {
+    const total = debts
+      .filter((debt) => debt.category === 'money' && debt.currency === code)
+      .reduce((sum, debt) => sum + amountFor(debt), 0);
+    return total > 0 ? [formatMoney(total, code)] : [];
+  }).join('\n') || '—';
 }
 
 export function getAvatarColor(name: string): string {

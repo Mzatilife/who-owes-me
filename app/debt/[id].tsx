@@ -215,9 +215,11 @@ export default function DebtDetailScreen() {
 
           {debt.notes && (
             <View style={[styles.infoCard, styles.notesCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <StickyNote size={18} color={colors.textSecondary} strokeWidth={2.5} />
-              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Notes</Text>
-              <Text style={[styles.infoValue, { color: colors.text, fontStyle: 'italic' }]}>{debt.notes}</Text>
+              <View style={styles.notesHeader}>
+                <StickyNote size={18} color={colors.textSecondary} strokeWidth={2.5} />
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Notes</Text>
+              </View>
+              <Text style={[styles.noteValue, { color: colors.text }]}>{debt.notes}</Text>
             </View>
           )}
         </View>
@@ -489,7 +491,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   notesCard: {
-    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 8,
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  noteValue: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    flexShrink: 1,
   },
   infoLabel: {
     fontFamily: 'Outfit_600SemiBold',

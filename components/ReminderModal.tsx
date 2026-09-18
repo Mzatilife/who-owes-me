@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -36,6 +36,10 @@ export function ReminderModal({ visible, debt, colors, onClose, onSent }: Remind
   const [selectedTone, setSelectedTone] = useState<ReminderTone>('funny');
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    if (visible) setCopied(false);
+  }, [visible, debt?.id]);
+
   if (!debt) return null;
 
   const isMoney = debt.category === 'money';
@@ -51,24 +55,29 @@ export function ReminderModal({ visible, debt, colors, onClose, onSent }: Remind
 
   const handleShare = async () => {
     try {
-      await Share.share({ message });
-      onSent();
+      const result = await Share.share({ message });
+      if (result.action === Share.sharedAction) onSent();
     } catch (e) {
       // user cancelled share
     }
   };
 
   const handleCopy = async () => {
-    if (Platform.OS === 'web') {
-      try {
-        await navigator.clipboard.writeText(message);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (e) {
-        // fallback
-      }
+    if (Platform.OS !== 'web') {
+      // React Native has no built-in clipboard API. Keep this action honest on
+      // native builds: it records a reminder the user has already sent.
+      onSent();
+      return;
     }
-    onSent();
+
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+      onSent();
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      // Do not count a reminder if copying it did not succeed.
+    }
   };
 
   return (
@@ -131,13 +140,13 @@ export function ReminderModal({ visible, debt, colors, onClose, onSent }: Remind
               onPress={handleCopy}
               style={[styles.actionBtn, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}
             >
-              {copied ? (
+              {copied || Platform.OS !== 'web' ? (
                 <Check size={18} color={colors.success} strokeWidth={2.5} />
               ) : (
                 <Copy size={18} color={colors.text} strokeWidth={2.5} />
               )}
               <Text style={[styles.actionBtnText, { color: colors.text }]}>
-                {copied ? 'Copied!' : 'Copy'}
+                {Platform.OS === 'web' ? (copied ? 'Copied!' : 'Copy') : 'Mark sent'}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

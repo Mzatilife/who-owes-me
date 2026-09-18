@@ -126,7 +126,7 @@ export function PaymentModal({
                     </View>
                     <View style={styles.amountBox}>
                       <Text style={[styles.amountLabel, { color: colors.textTertiary }]}>
-                        Still owed
+                        {iOwe ? 'Still to pay' : 'Still owed'}
                       </Text>
                       <Text style={[styles.amountValue, { color: colors.danger }]}>
                         {formatMoney(remaining, debt.currency)}

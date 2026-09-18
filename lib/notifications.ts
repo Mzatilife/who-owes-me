@@ -1,6 +1,40 @@
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import { AppSettings, Debt } from './types';
+
+type NotificationsModule = typeof import('expo-notifications');
+
+let notifications: NotificationsModule | null | undefined;
+
+/**
+ * Expo Go builds can omit native notification functionality. Load it lazily so
+ * the rest of the app remains usable when that happens.
+ */
+function getNotifications(): NotificationsModule | null {
+  if (notifications !== undefined) return notifications;
+
+  try {
+    notifications = require('expo-notifications') as NotificationsModule;
+  } catch (error) {
+    notifications = null;
+    console.warn('Notifications are unavailable in this app build.', error);
+  }
+
+  return notifications;
+}
+
+export function configureNotificationHandler() {
+  const Notifications = getNotifications();
+  if (!Notifications) return;
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 const CHANNEL_ID = 'due-date-reminders';
 const REMINDER_SOURCE = 'who-owes-me-due-date';
@@ -33,6 +67,9 @@ function reminderDate(dueDate: string, daysBefore: number): Date | null {
 async function ensurePermissions(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
 
+  const Notifications = getNotifications();
+  if (!Notifications) return false;
+
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
 
@@ -42,6 +79,9 @@ async function ensurePermissions(): Promise<boolean> {
 
 async function configureAndroidChannel() {
   if (Platform.OS !== 'android') return;
+
+  const Notifications = getNotifications();
+  if (!Notifications) return;
 
   await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
     name: 'Due date reminders',
@@ -54,6 +94,9 @@ async function configureAndroidChannel() {
 /** Removes only due-date reminders created by this app, leaving unrelated notifications intact. */
 export async function clearDueDateReminders() {
   if (Platform.OS === 'web') return;
+
+  const Notifications = getNotifications();
+  if (!Notifications) return;
 
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
@@ -69,6 +112,9 @@ export async function clearDueDateReminders() {
  */
 export async function syncDueDateReminders(debts: Debt[], settings: AppSettings) {
   if (Platform.OS === 'web') return;
+
+  const Notifications = getNotifications();
+  if (!Notifications) return;
 
   await clearDueDateReminders();
   if (settings.reminderFrequency === 'never') return;

@@ -1,29 +1,32 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp, useColors } from '@/lib/AppContext';
 import { StatCard } from '@/components/StatCard';
 import { EmptyState } from '@/components/EmptyState';
-import { formatMoney, getRemainingAmount, getTotalPaid, daysSince, getCurrencySymbol } from '@/lib/utils';
-import { computeStatus, getBiggestOffenderMessage, getMostReliableMessage, getEmptyStateMessage } from '@/lib/humor';
-import { Debt } from '@/lib/types';
-import { Crown, ShieldCheck, Clock, TrendingUp, Wallet, Users, Receipt, Timer } from 'lucide-react-native';
+import { formatMoney, formatTotalsByCurrency, getRemainingAmount, getTotalPaid, daysSince } from '@/lib/utils';
+import { getEmptyStateMessage } from '@/lib/humor';
+import { Debt, DebtDirection } from '@/lib/types';
+import { Crown, Clock } from 'lucide-react-native';
 
 export default function StatsScreen() {
-  const { state, debts, activeDebts, paidDebts, colors } = useApp();
+  const { state, debts, colors } = useApp();
+  const [direction, setDirection] = useState<DebtDirection>('owed_to_me');
+  const isIOwe = direction === 'i_owe';
 
   const stats = useMemo(() => {
-    const moneyDebts = debts.filter((d) => d.category === 'money');
-    const totalOwed = activeDebts
-      .filter((d) => d.category === 'money')
-      .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
-    const totalRecovered = paidDebts
-      .filter((d) => d.category === 'money')
-      .reduce((sum, d) => sum + getTotalPaid(d.payments), 0);
+    const directionDebts = debts.filter((debt) =>
+      direction === 'i_owe' ? debt.direction === 'i_owe' : debt.direction !== 'i_owe'
+    );
+    const activeDebts = directionDebts.filter((debt) => debt.status !== 'paid' && debt.status !== 'written_off');
+    const paidDebts = directionDebts.filter((debt) => debt.status === 'paid');
+
+    const outstanding = formatTotalsByCurrency(activeDebts);
+    const settled = formatTotalsByCurrency(paidDebts, (debt) => getTotalPaid(debt.payments));
 
     const peopleSet = new Set(activeDebts.map((d) => d.personName));
     const peopleCount = peopleSet.size;
-    const totalDebts = debts.length;
+    const totalDebts = directionDebts.length;
 
     // Average repayment time (for paid debts)
     const paidMoneyDebts = paidDebts.filter((d) => d.category === 'money');
@@ -39,53 +42,35 @@ export default function StatsScreen() {
       avgRepaymentDays = Math.round(totalDays / paidMoneyDebts.length);
     }
 
-    // Longest outstanding debt
+    // Oldest open record stays meaningful for both money owed to the user and money the user owes.
     const longestDebt = activeDebts.reduce<Debt | null>((max, d) => {
       const days = daysSince(d.dateAdded);
       if (!max || days > daysSince(max.dateAdded)) return d;
       return max;
     }, null);
 
-    // Biggest offender (most outstanding)
+    // Currency amounts must never be compared across currencies. The highlight
+    // therefore uses the user's selected default currency only.
     const personTotals: Record<string, number> = {};
     activeDebts
-      .filter((d) => d.category === 'money')
+      .filter((d) => d.category === 'money' && d.currency === state.settings.defaultCurrency)
       .forEach((d) => {
         const remaining = getRemainingAmount(d.amount, d.payments);
         personTotals[d.personName] = (personTotals[d.personName] ?? 0) + remaining;
       });
-    const biggestOffender = Object.entries(personTotals).sort((a, b) => b[1] - a[1])[0];
-
-    // Most reliable (paid debts with 0 reminders)
-    const personReliability: Record<string, { paid: number; total: number }> = {};
-    debts.forEach((d) => {
-      if (!personReliability[d.personName]) {
-        personReliability[d.personName] = { paid: 0, total: 0 };
-      }
-      personReliability[d.personName].total++;
-      if (d.status === 'paid') {
-        personReliability[d.personName].paid++;
-      }
-    });
-    const mostReliable = Object.entries(personReliability)
-      .filter(([, r]) => r.total >= 2 && r.paid > 0)
-      .sort((a, b) => {
-        const aRatio = a[1].paid / a[1].total;
-        const bRatio = b[1].paid / b[1].total;
-        return bRatio - aRatio;
-      })[0];
+    const largestBalance = Object.entries(personTotals).sort((a, b) => b[1] - a[1])[0];
 
     return {
-      totalOwed,
-      totalRecovered,
+      outstanding,
+      settled,
       peopleCount,
       totalDebts,
+      activeCount: activeDebts.length,
       avgRepaymentDays,
       longestDebt,
-      biggestOffender: biggestOffender ? { name: biggestOffender[0], amount: biggestOffender[1] } : null,
-      mostReliable: mostReliable ? mostReliable[0] : null,
+      largestBalance: largestBalance ? { name: largestBalance[0], amount: largestBalance[1] } : null,
     };
-  }, [debts, activeDebts, paidDebts]);
+  }, [debts, direction, state.settings.defaultCurrency]);
 
   const currency = state.settings.defaultCurrency;
   const emptyMsg = getEmptyStateMessage();
@@ -105,22 +90,31 @@ export default function StatsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.title, { color: colors.text }]}>Statistics</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          The numbers don't lie. Your friends do.
+          A clear view of both sides of your ledger.
         </Text>
+
+        <View style={[styles.directionSwitch, { backgroundColor: colors.bgTertiary, borderColor: colors.border }]}>
+          <TouchableOpacity onPress={() => setDirection('owed_to_me')} style={[styles.directionOption, direction === 'owed_to_me' && { backgroundColor: colors.card }]}>
+            <Text style={[styles.directionText, { color: direction === 'owed_to_me' ? colors.primary : colors.textSecondary }]}>Owed to me</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setDirection('i_owe')} style={[styles.directionOption, direction === 'i_owe' && { backgroundColor: colors.card }]}>
+            <Text style={[styles.directionText, { color: direction === 'i_owe' ? colors.primary : colors.textSecondary }]}>I owe</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Main stat cards */}
         <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Overview</Text>
         <View style={styles.statsRow}>
           <StatCard
-            label="Total Owed"
-            value={formatMoney(stats.totalOwed, currency)}
+            label={isIOwe ? 'Total I Owe' : 'Owed to Me'}
+            value={stats.outstanding}
             emoji="💸"
             colors={colors}
             accentColor={colors.danger}
           />
           <StatCard
-            label="Recovered"
-            value={formatMoney(stats.totalRecovered, currency)}
+            label={isIOwe ? 'Paid by Me' : 'Recovered'}
+            value={stats.settled}
             emoji="💰"
             colors={colors}
             accentColor={colors.success}
@@ -129,13 +123,13 @@ export default function StatsScreen() {
 
         <View style={styles.statsRow}>
           <StatCard
-            label="Debtors"
+            label={isIOwe ? 'People I Owe' : 'People Who Owe'}
             value={stats.peopleCount}
             emoji="🧑"
             colors={colors}
           />
           <StatCard
-            label="Total Debts"
+            label="All Records"
             value={stats.totalDebts}
             emoji="📋"
             colors={colors}
@@ -144,14 +138,14 @@ export default function StatsScreen() {
 
         <View style={styles.statsRow}>
           <StatCard
-            label="Avg Repayment"
+            label="Avg Settlement"
             value={stats.avgRepaymentDays > 0 ? `${stats.avgRepaymentDays}d` : '—'}
             emoji="⏱️"
             colors={colors}
           />
           <StatCard
-            label="Active Debts"
-            value={activeDebts.length}
+            label="Open Records"
+            value={stats.activeCount}
             emoji="🔥"
             colors={colors}
             accentColor={colors.warning}
@@ -165,7 +159,7 @@ export default function StatsScreen() {
             <View style={styles.highlightHeader}>
               <Clock size={20} color={colors.warning} strokeWidth={2.5} />
               <Text style={[styles.highlightLabel, { color: colors.textSecondary }]}>
-                Longest Outstanding Debt
+                Oldest Open Record
               </Text>
             </View>
             <Text style={[styles.highlightName, { color: colors.text }]}>
@@ -182,41 +176,22 @@ export default function StatsScreen() {
           </View>
         )}
 
-        {/* Biggest offender */}
-        {stats.biggestOffender && (
+        {stats.largestBalance && (
           <View style={[styles.highlightCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.highlightHeader}>
               <Crown size={20} color={colors.accent} strokeWidth={2.5} />
               <Text style={[styles.highlightLabel, { color: colors.textSecondary }]}>
-                Biggest Offender
+                Largest {currency} Balance
               </Text>
             </View>
             <Text style={[styles.highlightName, { color: colors.text }]}>
-              {stats.biggestOffender.name}
+              {stats.largestBalance.name}
             </Text>
             <Text style={[styles.highlightValue, { color: colors.accent }]}>
-              {formatMoney(stats.biggestOffender.amount, currency)} outstanding
+              {formatMoney(stats.largestBalance.amount, currency)} {isIOwe ? 'to settle' : 'outstanding'}
             </Text>
             <Text style={[styles.highlightSub, { color: colors.textTertiary, fontStyle: 'italic' }]}>
-              {getBiggestOffenderMessage(stats.biggestOffender.name)}
-            </Text>
-          </View>
-        )}
-
-        {/* Most reliable */}
-        {stats.mostReliable && (
-          <View style={[styles.highlightCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={styles.highlightHeader}>
-              <ShieldCheck size={20} color={colors.success} strokeWidth={2.5} />
-              <Text style={[styles.highlightLabel, { color: colors.textSecondary }]}>
-                Most Reliable Debtor
-              </Text>
-            </View>
-            <Text style={[styles.highlightName, { color: colors.text }]}>
-              {stats.mostReliable}
-            </Text>
-            <Text style={[styles.highlightSub, { color: colors.textTertiary, fontStyle: 'italic' }]}>
-              {getMostReliableMessage(stats.mostReliable)}
+              Based on your default display currency.
             </Text>
           </View>
         )}
@@ -244,6 +219,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginBottom: 20,
   },
+  directionSwitch: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, padding: 4, marginBottom: 8 },
+  directionOption: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10 },
+  directionText: { fontFamily: 'Outfit_700Bold', fontSize: 13 },
   groupTitle: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 13,

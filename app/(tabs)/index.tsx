@@ -17,7 +17,7 @@ import { DebtCard } from '@/components/DebtCard';
 import { ReminderModal } from '@/components/ReminderModal';
 import { Toast } from '@/components/Toast';
 import { EmptyState } from '@/components/EmptyState';
-import { formatMoney, getRemainingAmount, daysOverdue } from '@/lib/utils';
+import { formatTotalsByCurrency, daysOverdue } from '@/lib/utils';
 import { getGreeting, getGreetingSubtitle, computeStatus, getEmptyStateMessage, getManyDebtsMessage } from '@/lib/humor';
 import { Plus, TrendingUp, AlertTriangle, Package } from 'lucide-react-native';
 
@@ -35,18 +35,14 @@ export default function HomeScreen() {
   );
   const isIOwe = direction === 'i_owe';
 
-  const totalOwed = visibleDebts
-    .filter((d) => d.category === 'money')
-    .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
+  const totalOwed = formatTotalsByCurrency(visibleDebts);
 
   const peopleCount = new Set(visibleDebts.map((d) => d.personName)).size;
   const overdueDebts = visibleDebts.filter((d) => {
     const status = computeStatus(d.dueDate, d.dateAdded);
     return status !== 'fresh' && status !== 'remembering';
   });
-  const overdueAmount = overdueDebts
-    .filter((d) => d.category === 'money')
-    .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
+  const overdueAmount = formatTotalsByCurrency(overdueDebts);
   const thingsOwed = visibleDebts.filter((d) => d.category !== 'money').length;
 
   const sortedUrgent = [...visibleDebts].sort((a, b) => {
@@ -77,7 +73,9 @@ export default function HomeScreen() {
 
   const greeting = getGreeting(state.settings.userName);
   const subtitle = getGreetingSubtitle();
-  const emptyMsg = getEmptyStateMessage();
+  const emptyMsg = isIOwe
+    ? { title: 'Nothing left to settle.', subtitle: 'Your “I owe” ledger is clear.' }
+    : getEmptyStateMessage();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -119,7 +117,7 @@ export default function HomeScreen() {
           <LinearGradient colors={[colors.primaryDark, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
             <View style={styles.heroOrb} />
             <Text style={styles.heroLabel}>{isIOwe ? 'TOTAL YOU OWE' : 'TOTAL OWED TO YOU'}</Text>
-            <Text style={styles.heroAmount}>{formatMoney(totalOwed, state.settings.defaultCurrency)}</Text>
+            <Text style={styles.heroAmount}>{totalOwed}</Text>
             <Text style={styles.heroCaption}>Across {peopleCount} {peopleCount === 1 ? 'person' : 'people'} in your ledger</Text>
             <View style={styles.heroStats}>
               <View style={styles.heroStatItem}>
@@ -143,7 +141,7 @@ export default function HomeScreen() {
             <View style={[styles.quickStat, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[styles.quickIcon, { backgroundColor: colors.danger + '14' }]}><TrendingUp size={17} color={colors.danger} strokeWidth={2.5} /></View>
               <Text style={[styles.quickStatLabel, { color: colors.textSecondary }]}>{isIOwe ? 'PAYMENT DUE' : 'OVERDUE VALUE'}</Text>
-              <Text style={[styles.quickStatValue, { color: colors.text }]}>{formatMoney(overdueAmount, state.settings.defaultCurrency)}</Text>
+              <Text style={[styles.quickStatValue, { color: colors.text }]}>{overdueAmount}</Text>
             </View>
             <View style={[styles.quickStat, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[styles.quickIcon, { backgroundColor: colors.accent + '16' }]}><Package size={17} color={colors.accent} strokeWidth={2.5} /></View>

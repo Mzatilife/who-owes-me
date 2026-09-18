@@ -37,7 +37,7 @@ export default function AchievementsScreen() {
 
         <View style={[styles.progressCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.progressHeader}>
-            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>COLLECTION PROGRESS</Text>
+            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>LEDGER PROGRESS</Text>
             <Text style={[styles.progressValue, { color: colors.primary }]}>{progress}%</Text>
           </View>
           <View style={[styles.progressTrack, { backgroundColor: colors.bgTertiary }]}>

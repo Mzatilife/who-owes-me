@@ -275,7 +275,7 @@ export default function SettingsScreen() {
             <Image source={require('@/assets/images/new-logo.png')} style={styles.aboutIcon} />
             <Text style={[styles.aboutTitle, { color: colors.text }]}>Who Owes Me? v1.0.0</Text>
             <Text style={[styles.aboutText, { color: colors.textSecondary }]}>
-              A serious debt tracker that accidentally became hilarious. Track what people owe you, generate funny reminders, and keep tabs on who's paying and who's dodging.
+              A serious ledger that accidentally became hilarious. Track what people owe you and what you owe, generate reminders when needed, and keep every settlement in view.
             </Text>
             <Text style={[styles.aboutFooter, { color: colors.textTertiary }]}>
               Your data never leaves your device.

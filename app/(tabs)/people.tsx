@@ -14,7 +14,7 @@ import { DebtCard } from '@/components/DebtCard';
 import { ReminderModal } from '@/components/ReminderModal';
 import { EmptyState } from '@/components/EmptyState';
 import { Toast } from '@/components/Toast';
-import { formatMoney, getRemainingAmount } from '@/lib/utils';
+import { formatTotalsByCurrency } from '@/lib/utils';
 import { computeStatus, getEmptyStateMessage } from '@/lib/humor';
 import { ArrowUpDown, Search as SearchIcon } from 'lucide-react-native';
 
@@ -43,9 +43,7 @@ export default function PeopleScreen() {
 
   const sorted = useMemo(() => sortDebts(visibleDebts, sort), [visibleDebts, sort, sortDebts]);
 
-  const totalOwed = visibleDebts
-    .filter((d) => d.category === 'money')
-    .reduce((sum, d) => sum + getRemainingAmount(d.amount, d.payments), 0);
+  const totalOwed = formatTotalsByCurrency(visibleDebts);
 
   const peopleCount = new Set(visibleDebts.map((d) => d.personName)).size;
 
@@ -63,7 +61,9 @@ export default function PeopleScreen() {
     setReminderVisible(false);
   };
 
-  const emptyMsg = getEmptyStateMessage();
+  const emptyMsg = isIOwe
+    ? { title: 'Nothing left to settle.', subtitle: 'Your “I owe” ledger is clear.' }
+    : getEmptyStateMessage();
   const currentSortLabel = SORT_OPTIONS.find((o) => o.id === sort)?.label ?? 'Sort';
 
   return (
@@ -153,7 +153,7 @@ export default function PeopleScreen() {
             <View style={styles.totalRow}>
               <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{isIOwe ? 'Total Money You Owe' : 'Total Money Owed'}</Text>
               <Text style={[styles.totalValue, { color: colors.text }]}>
-                {formatMoney(totalOwed, 'MWK')}
+                {totalOwed}
               </Text>
             </View>
             <View style={[styles.totalDivider, { backgroundColor: colors.border }]} />

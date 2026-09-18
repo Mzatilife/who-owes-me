@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState } from './types';
-import { getSeedState } from './seed';
+import { getSeedAchievements, getSeedState } from './seed';
 
 const STORAGE_KEY = '@who_owes_me_state_v1';
 
@@ -9,6 +9,15 @@ export async function loadState(): Promise<AppState> {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as AppState;
+      // Keep achievement copy in sync with the current, two-sided ledger while
+      // preserving every achievement the user has already unlocked.
+      const savedAchievements = new Map(parsed.achievements?.map((achievement) => [achievement.id, achievement]));
+      parsed.achievements = getSeedAchievements().map((achievement) => {
+        const saved = savedAchievements.get(achievement.id);
+        return saved?.unlocked
+          ? { ...achievement, unlocked: true, unlockedDate: saved.unlockedDate }
+          : achievement;
+      });
       if (parsed.settings && parsed.settings.biometricEnabled === undefined) {
         parsed.settings.biometricEnabled = false;
       }

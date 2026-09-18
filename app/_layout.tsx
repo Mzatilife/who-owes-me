@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,16 +12,9 @@ import { LockScreen } from '@/components/LockScreen';
 import { OnboardingScreen } from '@/components/OnboardingScreen';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { configureDefaultTypography } from '@/lib/typography';
-import * as Notifications from 'expo-notifications';
+import { configureNotificationHandler } from '@/lib/notifications';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+configureNotificationHandler();
 
 SplashScreen.preventAutoHideAsync();
 
