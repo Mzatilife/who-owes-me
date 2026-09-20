@@ -13,10 +13,11 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
-import { useApp, useColors } from '@/lib/AppContext';
+import { useApp } from '@/lib/AppContext';
 import { DebtCategory, CurrencyCode, DebtDirection } from '@/lib/types';
 import { CURRENCIES } from '@/lib/utils';
 import { getRandomConfirmation } from '@/lib/humor';
+import { getTotalPaid } from '@/lib/utils';
 import { Toast } from '@/components/Toast';
 import { X, Check, Calendar, Phone, StickyNote, UserRound, ReceiptText } from 'lucide-react-native';
 
@@ -29,19 +30,21 @@ const CATEGORIES: { id: DebtCategory; label: string; emoji: string }[] = [
 ];
 
 export default function AddDebtScreen() {
-  const { state, colors, addDebt, checkAchievements } = useApp();
+  const { state, colors, addDebt, updateDebt, checkAchievements } = useApp();
   const router = useRouter();
-  const { direction: initialDirection } = useLocalSearchParams<{ direction?: DebtDirection }>();
+  const { direction: initialDirection, id } = useLocalSearchParams<{ direction?: DebtDirection; id?: string }>();
+  const existingDebt = id ? state.debts.find((debt) => debt.id === id) : undefined;
+  const isEditing = Boolean(existingDebt);
 
-  const [personName, setPersonName] = useState('');
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<DebtCategory>('money');
-  const [currency, setCurrency] = useState<CurrencyCode>(state.settings.defaultCurrency);
-  const [dueDate, setDueDate] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [notes, setNotes] = useState('');
-  const [direction, setDirection] = useState<DebtDirection>(initialDirection === 'i_owe' ? 'i_owe' : 'owed_to_me');
+  const [personName, setPersonName] = useState(existingDebt?.personName ?? '');
+  const [description, setDescription] = useState(existingDebt?.description ?? '');
+  const [amount, setAmount] = useState(existingDebt?.amount ? String(existingDebt.amount) : '');
+  const [category, setCategory] = useState<DebtCategory>(existingDebt?.category ?? 'money');
+  const [currency, setCurrency] = useState<CurrencyCode>(existingDebt?.currency ?? state.settings.defaultCurrency);
+  const [dueDate, setDueDate] = useState(existingDebt?.dueDate ?? '');
+  const [contactPhone, setContactPhone] = useState(existingDebt?.contactPhone ?? '');
+  const [notes, setNotes] = useState(existingDebt?.notes ?? '');
+  const [direction, setDirection] = useState<DebtDirection>(existingDebt?.direction ?? (initialDirection === 'i_owe' ? 'i_owe' : 'owed_to_me'));
   const [showCurrencies, setShowCurrencies] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
@@ -58,21 +61,31 @@ export default function AddDebtScreen() {
   const handleSave = () => {
     if (!canSave) return;
 
-    addDebt({
+    if (existingDebt && isMoney && parseFloat(amount) < getTotalPaid(existingDebt.payments)) {
+      setToast({ message: 'Amount cannot be lower than payments already recorded.', visible: true });
+      return;
+    }
+
+    const updates = {
       personName: personName.trim(),
       description: description.trim(),
       amount: isMoney ? parseFloat(amount) : 0,
       currency,
       category,
       direction,
-      dateAdded: new Date().toISOString(),
       dueDate: dueDate || undefined,
       notes: notes.trim() || undefined,
       contactPhone: contactPhone.trim() || undefined,
-    });
+    };
 
-    checkAchievements();
-    setToast({ message: getRandomConfirmation(personName.trim()), visible: true });
+    if (existingDebt) {
+      updateDebt(existingDebt.id, updates);
+      setToast({ message: 'Record updated.', visible: true });
+    } else {
+      addDebt({ ...updates, dateAdded: new Date().toISOString() });
+      checkAchievements();
+      setToast({ message: getRandomConfirmation(personName.trim()), visible: true });
+    }
 
     setTimeout(() => {
       router.back();
@@ -91,8 +104,8 @@ export default function AddDebtScreen() {
           <X size={24} color={colors.text} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerCopy}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Add a debt</Text>
-          <Text style={[styles.headerSub, { color: colors.textSecondary }]}>Write it down. They cannot deny it later.</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{isEditing ? 'Edit record' : 'Add a debt'}</Text>
+          <Text style={[styles.headerSub, { color: colors.textSecondary }]}>{isEditing ? 'Keep the details accurate.' : 'Write it down. They cannot deny it later.'}</Text>
         </View>
         <View style={styles.headerSpacer} />
       </View>
@@ -283,7 +296,7 @@ export default function AddDebtScreen() {
           ]}
         >
           <Check size={22} color="#FFF" strokeWidth={3} />
-          <View><Text style={[styles.saveBtnText, { color: canSave ? '#FFF' : colors.textTertiary }]}>{direction === 'i_owe' ? 'Record what I owe' : 'Record this debt'}</Text><Text style={[styles.saveBtnSubtext, { color: canSave ? '#D1FAE5' : colors.textTertiary }]}>Add it to your ledger</Text></View>
+          <View><Text style={[styles.saveBtnText, { color: canSave ? '#FFF' : colors.textTertiary }]}>{isEditing ? 'Save changes' : direction === 'i_owe' ? 'Record what I owe' : 'Record this debt'}</Text><Text style={[styles.saveBtnSubtext, { color: canSave ? '#D1FAE5' : colors.textTertiary }]}>{isEditing ? 'Update this ledger entry' : 'Add it to your ledger'}</Text></View>
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />

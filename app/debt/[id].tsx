@@ -17,7 +17,7 @@ import { Toast } from '@/components/Toast';
 import { formatMoney, getRemainingAmount, getTotalPaid, formatDate, daysSince, daysOverdue, relativeDate } from '@/lib/utils';
 import { computeStatus, getStatusEmoji, getStatusColor, getStatusMessage, computeHealth, HEALTH_INFO, getReputationScore } from '@/lib/humor';
 import { Debt } from '@/lib/types';
-import { X, Bell, CheckCircle, Trash2, StickyNote, Phone, Calendar } from 'lucide-react-native';
+import { X, Bell, CheckCircle, Trash2, StickyNote, Phone, Calendar, Pencil } from 'lucide-react-native';
 
 export default function DebtDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -124,9 +124,14 @@ export default function DebtDetailScreen() {
           <X size={24} color={colors.text} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerCopy}><Text style={[styles.headerTitle, { color: colors.text }]}>Debt details</Text><Text style={[styles.headerSub, { color: colors.textSecondary }]}>Keep the record straight.</Text></View>
-        <TouchableOpacity onPress={handleDelete} style={[styles.backBtn, { backgroundColor: colors.danger + '12' }]}>
-          <Trash2 size={22} color={colors.danger} strokeWidth={2.5} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/add-debt', params: { id: debt.id } })} style={[styles.backBtn, { backgroundColor: colors.primaryLight }]} accessibilityLabel="Edit record">
+            <Pencil size={20} color={colors.primary} strokeWidth={2.5} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDelete} style={[styles.backBtn, { backgroundColor: colors.danger + '12' }]} accessibilityLabel="Delete record">
+            <Trash2 size={22} color={colors.danger} strokeWidth={2.5} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -384,6 +389,7 @@ const styles = StyleSheet.create({
     width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
   },
   headerCopy: { flex: 1, marginLeft: 12 },
+  headerActions: { flexDirection: 'row', gap: 8 },
   headerTitle: {
     fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 20,
