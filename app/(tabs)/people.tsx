@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Toast } from '@/components/Toast';
 import { formatTotalsByCurrency } from '@/lib/utils';
 import { computeStatus, getEmptyStateMessage } from '@/lib/humor';
-import { ArrowDownLeft, ArrowUpDown, ArrowUpRight, CheckCircle2, Clock3, Layers3, Search as SearchIcon } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpDown, ArrowUpRight, CheckCircle2, Clock3, Layers3, Plus, Search as SearchIcon } from 'lucide-react-native';
 
 const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: 'overdue', label: 'Most Overdue' },
@@ -46,6 +46,16 @@ export default function PeopleScreen() {
   const isIOwe = direction === 'i_owe';
 
   const sorted = useMemo(() => sortDebts(visibleDebts, sort), [visibleDebts, sort, sortDebts]);
+  const debtsByPerson = useMemo(() => {
+    const groups = new Map<string, Debt[]>();
+    sorted.forEach((debt) => {
+      const key = debt.personName.trim().toLocaleLowerCase();
+      const group = groups.get(key) ?? [];
+      group.push(debt);
+      groups.set(key, group);
+    });
+    return Array.from(groups.values());
+  }, [sorted]);
 
   const totalOwed = formatTotalsByCurrency(visibleDebts);
 
@@ -145,16 +155,39 @@ export default function PeopleScreen() {
           <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>
             {visibleDebts.length} {filterLabel} {visibleDebts.length === 1 ? 'Record' : 'Records'}
           </Text>
-          {sorted.map((debt, i) => (
-            <DebtCard
-              key={debt.id}
-              debt={debt}
-              colors={colors}
-              index={i}
-              onPress={() => router.push(`/debt/${debt.id}`)}
-              onRemind={() => handleRemind(debt)}
-            />
-          ))}
+          {debtsByPerson.map((personRecords) => {
+            const personName = personRecords[0].personName;
+            return (
+              <View key={personRecords[0].personName.trim().toLocaleLowerCase()} style={styles.personGroup}>
+                <View style={styles.personHeading}>
+                  <View>
+                    <Text style={[styles.personName, { color: colors.text }]}>{personName}</Text>
+                    <Text style={[styles.personRecordCount, { color: colors.textTertiary }]}>
+                      {personRecords.length} {personRecords.length === 1 ? 'record' : 'records'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => router.push({ pathname: '/add-debt', params: { direction, personName } })}
+                    style={[styles.addRecordBtn, { backgroundColor: colors.primaryLight }]}
+                    accessibilityLabel={`Add another debt for ${personName}`}
+                  >
+                    <Plus size={16} color={colors.primary} strokeWidth={2.8} />
+                    <Text style={[styles.addRecordText, { color: colors.primary }]}>Add record</Text>
+                  </TouchableOpacity>
+                </View>
+                {personRecords.map((debt, i) => (
+                  <DebtCard
+                    key={debt.id}
+                    debt={debt}
+                    colors={colors}
+                    index={i}
+                    onPress={() => router.push(`/debt/${debt.id}`)}
+                    onRemind={() => handleRemind(debt)}
+                  />
+                ))}
+              </View>
+            );
+          })}
 
           {/* Total at bottom */}
           {recordFilter === 'active' && <View style={[styles.totalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -279,6 +312,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 8,
   },
+  personGroup: { marginBottom: 14 },
+  personHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  personName: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 17 },
+  personRecordCount: { fontFamily: 'Outfit_400Regular', fontSize: 12, marginTop: 1 },
+  addRecordBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 12, paddingHorizontal: 11, paddingVertical: 8 },
+  addRecordText: { fontFamily: 'Outfit_700Bold', fontSize: 12 },
   totalCard: {
     borderRadius: 16,
     padding: 16,

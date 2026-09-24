@@ -32,11 +32,11 @@ const CATEGORIES: { id: DebtCategory; label: string; emoji: string }[] = [
 export default function AddDebtScreen() {
   const { state, colors, addDebt, updateDebt, checkAchievements } = useApp();
   const router = useRouter();
-  const { direction: initialDirection, id } = useLocalSearchParams<{ direction?: DebtDirection; id?: string }>();
+  const { direction: initialDirection, id, personName: initialPersonName } = useLocalSearchParams<{ direction?: DebtDirection; id?: string; personName?: string }>();
   const existingDebt = id ? state.debts.find((debt) => debt.id === id) : undefined;
   const isEditing = Boolean(existingDebt);
 
-  const [personName, setPersonName] = useState(existingDebt?.personName ?? '');
+  const [personName, setPersonName] = useState(existingDebt?.personName ?? initialPersonName ?? '');
   const [description, setDescription] = useState(existingDebt?.description ?? '');
   const [amount, setAmount] = useState(existingDebt?.amount ? String(existingDebt.amount) : '');
   const [category, setCategory] = useState<DebtCategory>(existingDebt?.category ?? 'money');
